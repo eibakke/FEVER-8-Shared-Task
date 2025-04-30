@@ -20,7 +20,8 @@ export HUGGING_FACE_HUB_TOKEN="YOUR_TOKEN"
 # Execute each script from src directory
 python baseline/hyde_fc_generation_optimized.py \
     --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
-    --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" || exit 1
+    --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
+    --model "/fp/projects01/ec403/hf_models/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659" || exit 1
 
 python baseline/retrieval_optimized.py \
     --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
@@ -29,20 +30,20 @@ python baseline/retrieval_optimized.py \
     --top_k 5000 || exit 1
 
 python baseline/reranking_optimized.py \
-    --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
-    --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
+   --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
+   --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
     --retrieved_top_k 500 --batch_size 128 || exit 1
 
 python baseline/question_generation_optimized.py \
-    --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
-    --top_k_target_knowledge "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
+   --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
+   --top_k_target_knowledge "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
     --output_questions "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa.json" \
-    --model "meta-llama/Meta-Llama-3-8B-Instruct" || exit 1
+    --model "/fp/projects01/ec403/hf_models/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659" || exit 1
 
 python baseline/veracity_prediction_optimized.py \
     --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa.json" \
-    --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
-    --model "humane-lab/Meta-Llama-3.1-8B-HerO" || exit 1
+   --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
+   --model "humane-lab/Meta-Llama-3.1-8B-HerO" || exit 1
 
 python prepare_leaderboard_submission.py --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" || exit 1
 
