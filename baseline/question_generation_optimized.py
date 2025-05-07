@@ -14,10 +14,10 @@ from itertools import islice
 def download_nltk_data(package_name, download_dir='nltk_data'):
     # Ensure the download directory exists
     os.makedirs(download_dir, exist_ok=True)
-    
+
     # Set NLTK data path
     nltk.data.path.append(download_dir)
-    
+
     try:
         # Try to find the resource
         nltk.data.find(f'tokenizers/{package_name}')
@@ -28,11 +28,30 @@ def download_nltk_data(package_name, download_dir='nltk_data'):
         nltk.download(package_name, download_dir=download_dir)
         print(f"Successfully downloaded {package_name}")
 
+
 def format_time(seconds):
     """Format time duration nicely."""
     return str(timedelta(seconds=round(seconds)))
 
-def claim2prompts(example): 
+
+def extract_hf_id_from_local_path(model_path):
+    """Extract Hugging Face ID from local model path if applicable"""
+    if '/' in model_path and 'models--' in model_path:
+        try:
+            # Format is typically: /path/to/models--org--model-name/snapshots/hash
+            model_part = model_path.split('models--')[1].split('/')[0]
+            org = model_part.split('--')[0]
+            # Handle models with dashes in their names
+            model = '--'.join(model_part.split('--')[1:])
+            hf_id = f"{org}/{model}"
+            print(f"Extracted Hugging Face ID from path: {hf_id}")
+            return hf_id
+        except Exception as e:
+            print(f"Error extracting model ID: {e}, using original path")
+    return model_path
+
+
+def claim2prompts(example):
     claim = example["claim"]
     claim_str = "Example [NUMBER]:||Claim: " + claim + "||Evidence: "
 
@@ -50,22 +69,25 @@ def claim2prompts(example):
             if a["answer_type"] in ["Extractive", "Abstractive"]:
                 answer_strings.append(a["answer"])
             if a["answer_type"] == "Boolean":
-                answer_strings.append(a["answer"]  + ", because " + a["boolean_explanation"].lower().strip())
+                answer_strings.append(a["answer"] + ", because " + a["boolean_explanation"].lower().strip())
 
         for a_text in answer_strings:
             if not a_text[-1] in [".", "!", ":", "?"]:
                 a_text += "."
 
             prompt_lookup_str = a_text
-            this_q_claim_str = claim_str + a_text.strip() + "||Question: " + q_text 
+            this_q_claim_str = claim_str + a_text.strip() + "||Question: " + q_text
             yield (prompt_lookup_str, this_q_claim_str.replace("\n", " ").replace("||", "\n")[:1500])
+
 
 def main(args):
     script_start = time.time()
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Script started at: {start_time}")
-    print(f"Loading model: {args.model}")
 
+    # Process model path
+    model_name = extract_hf_id_from_local_path(args.model)
+    print(f"Loading model: {model_name}")
 
     download_nltk_data('punkt')
     download_nltk_data('punkt_tab')
@@ -84,31 +106,33 @@ def main(args):
 
     prompt_bm25 = BM25Okapi(tokenized_corpus)
     print(f"Reference corpus processed in: {format_time(time.time() - corpus_start)}")
-    
+
     # Initialize vLLM with optimized settings
     gpu_count = torch.cuda.device_count()
     print(f"Using {gpu_count} GPU{'s' if gpu_count > 1 else ''}")
-    
+
     model_start = time.time()
+
+    # Initialize LLM with the model name
     llm = LLM(
-        model=args.model,
+        model=model_name,
         tensor_parallel_size=gpu_count,
         max_model_len=4096,
         gpu_memory_utilization=0.95,
         enforce_eager=True,
         trust_remote_code=True,
-        # dtype="half",
     )
+
     llm.get_tokenizer().pad_token = "<|end_of_text|>"
     print(f"Model loaded in: {format_time(time.time() - model_start)}")
-    
+
     sampling_params = SamplingParams(
         temperature=0.6,
         top_p=0.9,
         top_k=1,
         skip_special_tokens=False,
         max_tokens=512,
-        stop=['<|end_of_text|>', '</s>', '<|im_end|>', '[INST]', '[/INST]','<|eot_id|>','<|end|>','<|endoftext|>']
+        stop=['<|end_of_text|>', '</s>', '<|im_end|>', '[INST]', '[/INST]', '<|eot_id|>', '<|end|>', '<|endoftext|>']
     )
 
     processing_start = time.time()
@@ -130,47 +154,47 @@ def main(args):
                 batch_end = min(idx + args.batch_size, args.end)
                 current_batch = target_examples[idx:batch_end]
                 print(f"\nProcessing batch {idx}-{batch_end}...")
-                
+
                 for example in current_batch:
                     batch_start = time.time()
                     claim = example["claim"]
                     claim_id = example["claim_id"]
                     top_k_sentences_urls = example[f"top_{args.top_k}"]
-                    
+
                     batch_prompts = []
                     batch_metadata = []
-                    
+
                     # Prepare all prompts for current example
                     for sentences_urls in top_k_sentences_urls:
                         prompt_lookup_str = sentences_urls["sentence"]
                         url = sentences_urls["url"]
-                        
+
                         prompt_s = prompt_bm25.get_scores(nltk.word_tokenize(prompt_lookup_str))
                         prompt_n = 10
                         prompt_top_n = np.argsort(prompt_s)[::-1][:prompt_n]
                         prompt_docs = [prompt_corpus[i] for i in prompt_top_n]
-                        
+
                         temp_prompt = "\n\n".join(prompt_docs)
-                        for k in range(1, temp_prompt.count("[NUMBER]")+1):
+                        for k in range(1, temp_prompt.count("[NUMBER]") + 1):
                             temp_prompt = temp_prompt.replace("[NUMBER]", f"{k}", 1)
-                            
+
                         claim_prompt = "Your task is to generate a question based on the given claim and evidence. The question should clarify the relationship between the evidence and the claim\n\n"
                         evidence = prompt_lookup_str.replace("\n", " ")
                         full_prompt = claim_prompt + temp_prompt + "\n\nNow, generate a question that links the following claim and evidence:" + f"\n\nClaim: {claim}" + f"\nEvidence: {evidence}"
-                        
-                        if "OLMo" in args.model:
+
+                        if "OLMo" in model_name:
                             inputs = [full_prompt]
                         else:
-                            messages = [{"role":"user", "content":full_prompt}]
+                            messages = [{"role": "user", "content": full_prompt}]
                             inputs = llm.get_tokenizer().apply_chat_template(messages, tokenize=False)
                             inputs += "<|start_header_id|>assistant<|end_header_id|>\n\nQuestion: "
-                            
+
                         batch_prompts.append(inputs)
                         batch_metadata.append((url, prompt_lookup_str))
-                    
+
                     # Process batch
                     outputs = llm.generate(batch_prompts, sampling_params)
-                    
+
                     # Process outputs
                     evidence = []
                     for output, (url, sent) in zip(outputs, batch_metadata):
@@ -180,7 +204,7 @@ def main(args):
                             "answer": sent,
                             "url": url
                         })
-                    
+
                     # Write results
                     json_data = {
                         "claim_id": claim_id,
@@ -189,7 +213,7 @@ def main(args):
                     }
                     output_file.write(json.dumps(json_data, ensure_ascii=False) + "\n")
                     output_file.flush()
-                    
+
                     batch_time = time.time() - batch_start
                     print(f"Processed example {claim_id}. Time elapsed: {batch_time:.2f}s")
 
@@ -197,7 +221,7 @@ def main(args):
     total_time = time.time() - script_start
     processing_time = time.time() - processing_start
     end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     print("\nTiming Summary:")
     print(f"Start time: {start_time}")
     print(f"End time: {end_time}")
@@ -206,8 +230,10 @@ def main(args):
     print(f"Processing time: {format_time(processing_time)}")
     print(f"Results written to: {args.output_questions}")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Use a prompt to generate questions that could be answered by top-k retrieved evidence. Output generated questions.")
+    parser = argparse.ArgumentParser(
+        description="Use a prompt to generate questions that could be answered by top-k retrieved evidence. Output generated questions.")
     parser.add_argument("--model", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct")
     parser.add_argument("--reference_corpus", default="data_store/averitec/train.json")
     parser.add_argument(
@@ -239,6 +265,6 @@ if __name__ == "__main__":
         type=int,
         default=-1
     )
-    
+
     args = parser.parse_args()
     main(args)
