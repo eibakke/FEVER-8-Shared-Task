@@ -3,7 +3,7 @@
 #SBATCH --account=ec403
 #SBATCH --time=08:00:00
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=4G
+#SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
 #SBATCH --gpus=1
 #SBATCH --cpus-per-task=8
@@ -12,6 +12,9 @@
 
 # Default to not run setup unless specified
 SETUP=${1:-0}
+
+# Shift the first argument (SETUP) so we can pass remaining args
+shift 2>/dev/null || true
 
 # Print the current working directory
 echo "Working directory: $(pwd)"
@@ -55,8 +58,8 @@ conda activate hero
 echo "Current environment:"
 conda info --envs
 
-echo "Step 3: Run the system"
-./run_system.sh
+echo "Step 3: Run the system with arguments: $@"
+# Pass all remaining arguments to run_system.sh
+./run_system.sh "$@"
 
 echo "Job completed"
-
