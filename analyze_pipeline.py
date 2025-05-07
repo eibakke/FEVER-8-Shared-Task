@@ -5,7 +5,6 @@ import os
 import csv
 import random
 from collections import defaultdict
-import pprint
 
 def load_json_file(filepath):
     """Load a JSON file safely."""
@@ -27,7 +26,7 @@ def load_json_file(filepath):
         print(f"Error: File not found: {filepath}")
         return None
 
-def analyze_pipeline_outputs(system_name, split, data_store):
+def analyze_pipeline_outputs(system_name, split, data_store, reference_file=None):
     """Analyze outputs from each step of the pipeline."""
     results = {}
     
@@ -49,6 +48,15 @@ def analyze_pipeline_outputs(system_name, split, data_store):
         else:
             print(f"Warning: Could not load data from {step}")
     
+    # Load reference data if provided
+    if reference_file:
+        reference_data = load_json_file(reference_file)
+        if reference_data:
+            results["reference"] = reference_data
+            print(f"Loaded {len(reference_data)} entries from reference file")
+        else:
+            print(f"Warning: Could not load reference data from {reference_file}")
+    
     return results
 
 def get_claim_by_id(claim_id, pipeline_results, verbose=False):
@@ -58,17 +66,28 @@ def get_claim_by_id(claim_id, pipeline_results, verbose=False):
     # Extract information for the claim from each step
     for step, data in pipeline_results.items():
         # Find the entry for this claim
-        entry = next((item for item in data if str(item.get('claim_id', '')) == str(claim_id)), None)
+        entry = None
         
-        # If no entry with claim_id, try using just the index in hyde_fc
-        if entry is None and step == 'hyde_fc':
-            # In hyde_fc, sometimes claims don't have claim_id - they're just indexed
+        if step == "reference":
+            # For reference data, match by index rather than claim_id
             try:
                 index = int(claim_id)
                 if index < len(data):
                     entry = data[index]
             except (ValueError, IndexError):
                 pass
+        else:
+            # For other stages, try to match by claim_id
+            entry = next((item for item in data if str(item.get('claim_id', '')) == str(claim_id)), None)
+            
+            # If no entry with claim_id, try using just the index in hyde_fc
+            if entry is None and step == 'hyde_fc':
+                try:
+                    index = int(claim_id)
+                    if index < len(data):
+                        entry = data[index]
+                except (ValueError, IndexError):
+                    pass
         
         if entry:
             claim_info[step] = entry
@@ -119,6 +138,30 @@ def find_hypo_fc_docs(claim_info, verbose=False):
         print("Could not find hypo_fc_docs anywhere in claim data")
     return []
 
+def extract_reference_qa_pairs(reference_data):
+    """Extract question-answer pairs from reference data."""
+    qa_pairs = []
+    
+    if 'questions' in reference_data:
+        for q_item in reference_data['questions']:
+            question = q_item.get('question', '')
+            answers = q_item.get('answers', [])
+            
+            if answers:
+                for answer in answers:
+                    answer_text = answer.get('answer', '')
+                    
+                    # Add boolean explanation if available
+                    if answer.get('answer_type') == 'Boolean' and 'boolean_explanation' in answer:
+                        answer_text += f" - {answer['boolean_explanation']}"
+                    
+                    qa_pairs.append((question, answer_text))
+            else:
+                # If no answers, add question with empty answer
+                qa_pairs.append((question, ""))
+    
+    return qa_pairs
+
 def generate_analysis_csv(pipeline_results, output_file, samples_per_label=5, verbose=False):
     """Generate a CSV file with detailed analysis of sampled claims."""
     claims_by_label = get_sorted_claims_by_label(pipeline_results)
@@ -129,20 +172,28 @@ def generate_analysis_csv(pipeline_results, output_file, samples_per_label=5, ve
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = [
             'claim_id', 
-            'label', 
+            'predicted_label',
+            'reference_label',
             'claim_text',
             'hyde_fc_doc_1',
             'hyde_fc_doc_2',
             'reranked_sentence_1',
             'reranked_sentence_2',
             'reranked_sentence_3',
-            'question_1',
-            'answer_1',
-            'question_2',
-            'answer_2',
-            'question_3',
-            'answer_3',
-            'justification'
+            'predicted_question_1',
+            'predicted_answer_1',
+            'predicted_question_2',
+            'predicted_answer_2',
+            'predicted_question_3',
+            'predicted_answer_3',
+            'reference_question_1',
+            'reference_answer_1',
+            'reference_question_2',
+            'reference_answer_2',
+            'reference_question_3',
+            'reference_answer_3',
+            'predicted_justification',
+            'reference_justification'
         ]
         
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -183,35 +234,56 @@ def generate_analysis_csv(pipeline_results, output_file, samples_per_label=5, ve
             while len(reranked_sentences) < 3:
                 reranked_sentences.append("")
             
-            # Extract questions and answers
-            qa_pairs = []
+            # Extract predicted questions and answers
+            pred_qa_pairs = []
             if 'questions' in claim_info and 'evidence' in claim_info['questions']:
                 for qa in claim_info['questions']['evidence'][:3]:
-                    qa_pairs.append((qa['question'], qa['answer']))
+                    pred_qa_pairs.append((qa['question'], qa['answer']))
             
-            while len(qa_pairs) < 3:
-                qa_pairs.append(("", ""))
+            while len(pred_qa_pairs) < 3:
+                pred_qa_pairs.append(("", ""))
             
-            # Extract justification
-            justification = claim_info.get('veracity', {}).get('llm_output', '')
+            # Extract reference questions and answers
+            ref_qa_pairs = []
+            if 'reference' in claim_info:
+                ref_qa_pairs = extract_reference_qa_pairs(claim_info['reference'])
+            
+            while len(ref_qa_pairs) < 3:
+                ref_qa_pairs.append(("", ""))
+            
+            # Extract predicted and reference justifications
+            pred_justification = claim_info.get('veracity', {}).get('llm_output', '')
+            ref_justification = claim_info.get('reference', {}).get('justification', '')
+            
+            # Extract predicted and reference labels
+            pred_label = label
+            ref_label = claim_info.get('reference', {}).get('label', '')
             
             # Write row
             row = {
                 'claim_id': claim_id,
-                'label': label,
+                'predicted_label': pred_label,
+                'reference_label': ref_label,
                 'claim_text': claim_text,
                 'hyde_fc_doc_1': hyde_fc_doc_1,
                 'hyde_fc_doc_2': hyde_fc_doc_2,
                 'reranked_sentence_1': reranked_sentences[0],
                 'reranked_sentence_2': reranked_sentences[1],
                 'reranked_sentence_3': reranked_sentences[2],
-                'question_1': qa_pairs[0][0],
-                'answer_1': qa_pairs[0][1],
-                'question_2': qa_pairs[1][0],
-                'answer_2': qa_pairs[1][1],
-                'question_3': qa_pairs[2][0],
-                'answer_3': qa_pairs[2][1],
-                'justification': justification
+                'predicted_question_1': pred_qa_pairs[0][0],
+                'predicted_answer_1': pred_qa_pairs[0][1],
+                'predicted_question_2': pred_qa_pairs[1][0],
+                'predicted_answer_2': pred_qa_pairs[1][1],
+                'predicted_question_3': pred_qa_pairs[2][0],
+                'predicted_answer_3': pred_qa_pairs[2][1],
+                'reference_question_1': ref_qa_pairs[0][0],
+                'reference_answer_1': ref_qa_pairs[0][1],
+                'reference_question_2': ref_qa_pairs[1][0],
+                'reference_answer_2': ref_qa_pairs[1][1],
+                'reference_question_3': ref_qa_pairs[2][0],
+                'reference_answer_3': ref_qa_pairs[2][1],
+                'predicted_justification': pred_justification,
+                'reference_justification': ref_justification
             }
             
             writer.writerow(row)
@@ -257,7 +329,12 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                     mdfile.write(f"### Sample {i+1}: Claim {claim_id}\n\n")
                     mdfile.write(f"**Claim**: {claim_text}\n\n")
                     
-                    # Find and extract hypo_fc_docs wherever they may be
+                    # Extract reference label
+                    ref_label = claim_info.get('reference', {}).get('label', 'Not available')
+                    mdfile.write(f"**Reference Label**: {ref_label}\n\n")
+                    mdfile.write(f"**Predicted Label**: {label}\n\n")
+                    
+                    # Write Hyde FC documents - they are at the top level in hyde_fc
                     mdfile.write("#### Hypothetical Fact-Checking Documents\n\n")
                     hyde_fc_docs = find_hypo_fc_docs(claim_info, verbose)
                     
@@ -276,21 +353,47 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                     else:
                         mdfile.write("No reranked sentences available.\n\n")
                     
-                    # Write questions and answers
-                    mdfile.write("#### Generated Questions and Answers\n\n")
-                    if 'questions' in claim_info and 'evidence' in claim_info['questions']:
-                        for j, qa in enumerate(claim_info['questions']['evidence'][:5]):
-                            mdfile.write(f"**Q{j+1}**: {qa['question']}\n\n")
-                            mdfile.write(f"**A{j+1}**: {qa['answer']}\n\n")
-                            mdfile.write(f"Source: {qa.get('url', 'N/A')}\n\n")
-                    else:
-                        mdfile.write("No questions and answers available.\n\n")
+                    # Write predictions and reference side by side
+                    mdfile.write("#### Questions and Answers Comparison\n\n")
                     
-                    # Write veracity prediction
-                    mdfile.write("#### Veracity Prediction\n\n")
-                    mdfile.write(f"**Label**: {label}\n\n")
-                    mdfile.write("**Justification**:\n\n")
+                    # Create a table with predicted and reference QA pairs
+                    mdfile.write("| | Predicted | Reference |\n")
+                    mdfile.write("|---|---|---|\n")
+                    
+                    # Extract predicted questions and answers
+                    pred_qa_pairs = []
+                    if 'questions' in claim_info and 'evidence' in claim_info['questions']:
+                        for qa in claim_info['questions']['evidence'][:5]:
+                            pred_qa_pairs.append((qa['question'], qa['answer']))
+                    
+                    # Extract reference questions and answers
+                    ref_qa_pairs = []
+                    if 'reference' in claim_info:
+                        ref_qa_pairs = extract_reference_qa_pairs(claim_info['reference'])
+                    
+                    # Determine max number of rows
+                    max_pairs = max(len(pred_qa_pairs), len(ref_qa_pairs), 5)
+                    
+                    # Fill table
+                    for j in range(max_pairs):
+                        pred_q = pred_qa_pairs[j][0] if j < len(pred_qa_pairs) else ""
+                        pred_a = pred_qa_pairs[j][1] if j < len(pred_qa_pairs) else ""
+                        ref_q = ref_qa_pairs[j][0] if j < len(ref_qa_pairs) else ""
+                        ref_a = ref_qa_pairs[j][1] if j < len(ref_qa_pairs) else ""
+                        
+                        mdfile.write(f"| Q{j+1} | {pred_q} | {ref_q} |\n")
+                        mdfile.write(f"| A{j+1} | {pred_a} | {ref_a} |\n")
+                    
+                    # Write justification comparison
+                    mdfile.write("\n#### Justification Comparison\n\n")
+                    
+                    # Predicted justification
+                    mdfile.write("**Predicted Justification**:\n\n")
                     mdfile.write(f"```\n{claim_info.get('veracity', {}).get('llm_output', 'No justification provided')}\n```\n\n")
+                    
+                    # Reference justification
+                    mdfile.write("**Reference Justification**:\n\n")
+                    mdfile.write(f"```\n{claim_info.get('reference', {}).get('justification', 'No reference justification available')}\n```\n\n")
                     
                     mdfile.write("---\n\n")
             else:
@@ -307,12 +410,12 @@ def main():
     parser.add_argument('--format', choices=['csv', 'markdown'], default='markdown', help='Output format')
     parser.add_argument('--samples', type=int, default=5, help='Number of samples per label')
     parser.add_argument('--verbose', action='store_true', help='Print debug information')
-    parser.add_argument('--dump-entry', action='store_true', help='Dump first entry from each dataset')
+    parser.add_argument('--reference', help='Path to reference data file')
     
     args = parser.parse_args()
     
     # Analyze pipeline outputs
-    pipeline_results = analyze_pipeline_outputs(args.system, args.split, args.data_store)
+    pipeline_results = analyze_pipeline_outputs(args.system, args.split, args.data_store, args.reference)
     
     if not pipeline_results:
         print("No results to analyze. Check file paths and try again.")
@@ -329,8 +432,7 @@ def main():
                 # Print hypo_fc_docs if it exists
                 if 'hypo_fc_docs' in keys:
                     print(f"  hypo_fc_docs is at the top level (correct)")
-                    if args.dump_entry:
-                        print(f"  First hypo_fc_doc: {data[0]['hypo_fc_docs'][0][:200]}...")
+                    print(f"  First hypo_fc_doc: {data[0]['hypo_fc_docs'][0][:200]}...")
     
     # Generate analysis file
     if args.format == 'csv':
