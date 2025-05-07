@@ -32,7 +32,25 @@ def format_time(seconds):
     """Format time duration nicely."""
     return str(timedelta(seconds=round(seconds)))
 
-def claim2prompts(example): 
+
+def extract_hf_id_from_local_path(model_path):
+    """Extract Hugging Face ID from local model path if applicable"""
+    if '/' in model_path and 'models--' in model_path:
+        try:
+            # Format is typically: /path/to/models--org--model-name/snapshots/hash
+            model_part = model_path.split('models--')[1].split('/')[0]
+            org = model_part.split('--')[0]
+            # Handle models with dashes in their names
+            model = '--'.join(model_part.split('--')[1:])
+            hf_id = f"{org}/{model}"
+            print(f"Extracted Hugging Face ID from path: {hf_id}")
+            return hf_id
+        except Exception as e:
+            print(f"Error extracting model ID: {e}, using original path")
+    return model_path
+
+
+def claim2prompts(example):
     claim = example["claim"]
     claim_str = "Example [NUMBER]:||Claim: " + claim + "||Evidence: "
 
@@ -64,8 +82,10 @@ def main(args):
     script_start = time.time()
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Script started at: {start_time}")
-    print(f"Loading model: {args.model}")
 
+    # Process model path
+    model_name = extract_hf_id_from_local_path(args.model)
+    print(f"Loading model: {model_name}")
 
     download_nltk_data('punkt')
     download_nltk_data('punkt_tab')
@@ -91,7 +111,7 @@ def main(args):
     
     model_start = time.time()
     llm = LLM(
-        model=args.model,
+        model=model_name,
         tensor_parallel_size=gpu_count,
         max_model_len=4096,
         gpu_memory_utilization=0.95,
@@ -157,8 +177,8 @@ def main(args):
                         claim_prompt = "Your task is to generate a question based on the given claim and evidence. The question should clarify the relationship between the evidence and the claim\n\n"
                         evidence = prompt_lookup_str.replace("\n", " ")
                         full_prompt = claim_prompt + temp_prompt + "\n\nNow, generate a question that links the following claim and evidence:" + f"\n\nClaim: {claim}" + f"\nEvidence: {evidence}"
-                        
-                        if "OLMo" in args.model:
+
+                        if "OLMo" in model_name:
                             inputs = [full_prompt]
                         else:
                             messages = [{"role":"user", "content":full_prompt}]
