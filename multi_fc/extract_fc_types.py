@@ -15,7 +15,6 @@ def extract_fc_type(input_file, output_prefix, fc_type):
     new_data = []
     for example in data:
         new_example = {
-            "claim_id": example["claim_id"],
             "claim": example["claim"],
             "hypo_fc_docs": example[f"hypo_fc_{fc_type}"]
         }

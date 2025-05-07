@@ -5,6 +5,9 @@ SYSTEM_NAME="multi_perspective"  # Change this to identify your system
 SPLIT="dev"                      # Change this to "dev", or "test"
 BASE_DIR="."                     # Current directory
 NUM_EXAMPLES=0                   # Default: use full dataset (0 = full dataset)
+SKIP_STEPS=""                    # Steps to skip (comma-separated)
+FORCE_STEPS=""                   # Steps to force run even if output exists (comma-separated)
+START_FROM=1                     # Start from this step (default: from beginning)
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -25,9 +28,21 @@ while [[ $# -gt 0 ]]; do
       BASE_DIR="${1#*=}"
       shift
       ;;
+    --skip-steps=*)
+      SKIP_STEPS="${1#*=}"
+      shift
+      ;;
+    --force-steps=*)
+      FORCE_STEPS="${1#*=}"
+      shift
+      ;;
+    --start-from=*)
+      START_FROM="${1#*=}"
+      shift
+      ;;
     *)
       echo "Unknown parameter: $1"
-      echo "Usage: ./multi_system_inference.sh [--num-examples=N] [--system=NAME] [--split=SPLIT] [--base-dir=DIR]"
+      echo "Usage: ./multi_system_inference.sh [--num-examples=N] [--system=NAME] [--split=SPLIT] [--base-dir=DIR] [--skip-steps=1,2,3] [--force-steps=4,5] [--start-from=N]"
       exit 1
       ;;
   esac
@@ -109,6 +124,46 @@ echo "Starting multi-perspective system inference for ${SYSTEM_NAME} on ${SPLIT}
 echo "Data store: ${DATA_STORE}"
 echo "Knowledge store: ${KNOWLEDGE_STORE}"
 echo "Batch sizes - Main: ${BATCH_SIZE}, Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
+echo "Starting from step ${START_FROM}"
+if [ ! -z "$SKIP_STEPS" ]; then
+    echo "Skipping steps: ${SKIP_STEPS}"
+fi
+if [ ! -z "$FORCE_STEPS" ]; then
+    echo "Forcing steps: ${FORCE_STEPS}"
+fi
+
+# Function to check if a step should be run
+should_run_step() {
+    step_num=$1
+    output_file=$2
+
+    # Check if step is before START_FROM
+    if [ $step_num -lt $START_FROM ]; then
+        echo "Skipping step $step_num (starting from step $START_FROM)"
+        return 1
+    fi
+
+    # Check if step is in SKIP_STEPS
+    if [[ $SKIP_STEPS == *"$step_num"* || $SKIP_STEPS == *"all"* ]]; then
+        echo "Skipping step $step_num (explicitly skipped)"
+        return 1
+    fi
+
+    # Check if step is in FORCE_STEPS
+    if [[ $FORCE_STEPS == *"$step_num"* || $FORCE_STEPS == *"all"* ]]; then
+        echo "Running step $step_num (explicitly forced)"
+        return 0
+    fi
+
+    # Check if output file exists
+    if [ -f "$output_file" ]; then
+        echo "Skipping step $step_num (output file exists: $output_file)"
+        return 1
+    fi
+
+    # Run the step
+    return 0
+}
 
 # Load config file with tokens
 if [ -f ".env" ]; then
@@ -142,19 +197,26 @@ HERO_MODEL="humane-lab/Meta-Llama-3.1-8B-HerO"
 FC_TYPES=("positive" "negative" "objective")
 
 # Step 1: Generate multi-type hypothetical fact-checking documents
-echo "Step 1: Generating multi-type hypothetical fact-checking documents..."
-python multi_fc/multi_hyde_fc_generation.py \
-    --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
-    --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_multi_hyde_fc.json" \
-    --model "$MODEL_PATH" \
-    --batch_size $BATCH_SIZE || exit 1
+STEP1_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_multi_hyde_fc.json"
+if should_run_step 1 "$STEP1_OUTPUT"; then
+    echo "Step 1: Generating multi-type hypothetical fact-checking documents..."
+    python multi_fc/multi_hyde_fc_generation.py \
+        --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
+        --json_output "$STEP1_OUTPUT" \
+        --model "$MODEL_PATH" \
+        --batch_size $BATCH_SIZE || exit 1
+fi
 
 # Step 2: Extract each type of fact-checking document
-echo "Step 2: Extracting different types of fact-checking documents..."
-python multi_fc/extract_fc_types.py \
-    --input_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_multi_hyde_fc.json" \
-    --output_prefix "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc" \
-    --types "${FC_TYPES[@]}" || exit 1
+STEP2_OUTPUT_PREFIX="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc"
+STEP2_OUTPUT="${STEP2_OUTPUT_PREFIX}_positive.json" # Check just one of the outputs
+if should_run_step 2 "$STEP2_OUTPUT"; then
+    echo "Step 2: Extracting different types of fact-checking documents..."
+    python multi_fc/extract_fc_types.py \
+        --input_file "$STEP1_OUTPUT" \
+        --output_prefix "$STEP2_OUTPUT_PREFIX" \
+        --types "${FC_TYPES[@]}" || exit 1
+fi
 
 # Arrays to collect QA outputs for merging
 QA_OUTPUTS=()
@@ -163,59 +225,79 @@ QA_OUTPUTS=()
 for fc_type in "${FC_TYPES[@]}"; do
     echo "Processing ${fc_type} fact-checking perspective..."
 
-    # Step 3: Run retrieval for this type
-    echo "Step 3a: Running retrieval for ${fc_type} fact-checking..."
-    python baseline/retrieval_optimized.py \
-        --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
-        --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
-        --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k_${fc_type}.json" \
-        --top_k 5000 || exit 1
+    # Step 3a: Run retrieval for this type
+    STEP3A_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k_${fc_type}.json"
+    if should_run_step "3a-${fc_type}" "$STEP3A_OUTPUT"; then
+        echo "Step 3a: Running retrieval for ${fc_type} fact-checking..."
+        python baseline/retrieval_optimized.py \
+            --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
+            --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
+            --json_output "$STEP3A_OUTPUT" \
+            --top_k 5000 || exit 1
+    fi
 
-    # Step 4: Run reranking for this type
-    echo "Step 3b: Running reranking for ${fc_type} fact-checking..."
-    python baseline/reranking_optimized.py \
-        --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k_${fc_type}.json" \
-        --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k_${fc_type}.json" \
-        --retrieved_top_k 500 --batch_size $RERANKING_BATCH_SIZE || exit 1
+    # Step 3b: Run reranking for this type
+    STEP3B_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k_${fc_type}.json"
+    if should_run_step "3b-${fc_type}" "$STEP3B_OUTPUT"; then
+        echo "Step 3b: Running reranking for ${fc_type} fact-checking..."
+        python baseline/reranking_optimized.py \
+            --target_data "$STEP3A_OUTPUT" \
+            --json_output "$STEP3B_OUTPUT" \
+            --retrieved_top_k 500 --batch_size $RERANKING_BATCH_SIZE || exit 1
+    fi
 
-    # Step 5: Generate questions for this type
-    echo "Step 3c: Generating questions for ${fc_type} fact-checking..."
-    python baseline/question_generation_optimized.py \
-        --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
-        --top_k_target_knowledge "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k_${fc_type}.json" \
-        --output_questions "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa_${fc_type}.json" \
-        --model "$MODEL_PATH" \
-        --batch_size $QUESTION_GEN_BATCH_SIZE || exit 1
+    # Step 3c: Generate questions for this type
+    STEP3C_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa_${fc_type}.json"
+    if should_run_step "3c-${fc_type}" "$STEP3C_OUTPUT"; then
+        echo "Step 3c: Generating questions for ${fc_type} fact-checking..."
+        python baseline/question_generation_optimized.py \
+            --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
+            --top_k_target_knowledge "$STEP3B_OUTPUT" \
+            --output_questions "$STEP3C_OUTPUT" \
+            --model "$MODEL_PATH" \
+            --batch_size $QUESTION_GEN_BATCH_SIZE || exit 1
+    fi
 
     # Add this output to the list of QA outputs
-    QA_OUTPUTS+=("${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa_${fc_type}.json")
+    QA_OUTPUTS+=("$STEP3C_OUTPUT")
 done
 
-# Step 6: Merge question-answer pairs from all types
-echo "Step 4: Merging question-answer pairs from all perspectives..."
-python multi_fc/merge_qa.py \
-    --qa_files "${QA_OUTPUTS[@]}" \
-    --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_merged_qa.json" \
-    --types "${FC_TYPES[@]}" || exit 1
+# Step 4: Merge question-answer pairs from all types
+STEP4_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_merged_qa.json"
+if should_run_step 4 "$STEP4_OUTPUT"; then
+    echo "Step 4: Merging question-answer pairs from all perspectives..."
+    python merge_qa.py \
+        --qa_files "${QA_OUTPUTS[@]}" \
+        --output_file "$STEP4_OUTPUT" \
+        --types "${FC_TYPES[@]}" || exit 1
+fi
 
-# Step 7: Run veracity prediction with merged question-answer pairs
-echo "Step 5: Running veracity prediction with merged question-answer pairs..."
-python multi_fc/multi_veracity_prediction.py \
-    --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_merged_qa.json" \
-    --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
-    --batch_size $VERACITY_BATCH_SIZE \
-    --model "$HERO_MODEL" || exit 1
+# Step 5: Run veracity prediction with merged question-answer pairs
+STEP5_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"
+if should_run_step 5 "$STEP5_OUTPUT"; then
+    echo "Step 5: Running veracity prediction with merged question-answer pairs..."
+    python multi_veracity_prediction.py \
+        --target_data "$STEP4_OUTPUT" \
+        --output_file "$STEP5_OUTPUT" \
+        --batch_size $VERACITY_BATCH_SIZE \
+        --model "$HERO_MODEL" || exit 1
+fi
 
-# Step 8: Prepare leaderboard submission
-echo "Step 6: Preparing leaderboard submission..."
-python prepare_leaderboard_submission.py \
-    --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" || exit 1
+# Step 6: Prepare leaderboard submission
+STEP6_OUTPUT="leaderboard_submission/submission.csv"
+if should_run_step 6 "$STEP6_OUTPUT"; then
+    echo "Step 6: Preparing leaderboard submission..."
+    python prepare_leaderboard_submission.py \
+        --filename "$STEP5_OUTPUT" || exit 1
+fi
 
-# Step 9: Evaluate results
-echo "Step 7: Evaluating results..."
-python baseline/averitec_evaluate_legacy.py \
-    --prediction_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
-    --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
+# Step 7: Evaluate results
+if should_run_step 7 ""; then  # No specific output file for evaluation
+    echo "Step 7: Evaluating results..."
+    python baseline/averitec_evaluate_legacy.py \
+        --prediction_file "$STEP5_OUTPUT" \
+        --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
+fi
 
 echo "All steps completed successfully!"
 echo "To analyze the results, run: python analyze_pipeline.py --system $SYSTEM_NAME --split $SPLIT --summary"
