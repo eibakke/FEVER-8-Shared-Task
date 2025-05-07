@@ -275,9 +275,30 @@ class EV2REvaluator:
     TEMPERATURE = 0
 
     # -------------------------
-    llamaapi_api_token = ""     # To obtain the LLAMA API token, please visit this URL: https://console.llmapi.com/en/dashboard
-    llamaapi_client = OpenAI(api_key=llamaapi_api_token, base_url="https://api.llmapi.com/")
+    #llamaapi_client = OpenAI(base_url="https://api.llmapi.com/")
     # -------------------------
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print("Warning: OPENAI_API_KEY environment variable not found in environment")
+        print("Trying to read from .env file directly...")
+        try:
+            with open('.env', 'r') as f:
+                for line in f:
+                    if 'OPENAI_API_KEY' in line:
+                        key_value = line.strip().split('=', 1)[1]
+                        # Remove quotes if present
+                        api_key = key_value.strip('"\'')
+                        os.environ["OPENAI_API_KEY"] = api_key
+                        print("Successfully loaded API key from .env file")
+                        break
+        except FileNotFoundError:
+            print("No .env file found")
+
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found in environment or .env file")
+
+    llamaapi_client = OpenAI(api_key=api_key, base_url="https://api.llmapi.com/")
+
 
     def __init__(self, properties=None):
         self.properties = properties

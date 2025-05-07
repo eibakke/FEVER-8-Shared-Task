@@ -2,7 +2,7 @@
 
 # System configuration
 SYSTEM_NAME="baseline"  # Change this to "HerO", "Baseline", etc.
-SPLIT="dev"  # Change this to "dev", or "test"
+SPLIT="dev_nano"  # Change this to "dev", or "test"
 BASE_DIR="."  # Current directory
 
 DATA_STORE="${BASE_DIR}/data_store"
@@ -15,7 +15,29 @@ mkdir -p "${DATA_STORE}/${SYSTEM_NAME}"
 mkdir -p "${KNOWLEDGE_STORE}/${SPLIT}"
 mkdir -p "${HF_HOME}"
 
-export HUGGING_FACE_HUB_TOKEN="YOUR_TOKEN"
+# Load config file with tokens
+if [ -f ".env" ]; then
+    source .env
+else
+    echo "Error: .env file not found"
+    echo "Please create it with: echo 'export HUGGING_FACE_HUB_TOKEN=your_token' > .env"
+    exit 1
+fi
+
+if [ -z "$HUGGING_FACE_HUB_TOKEN" ]; then
+    echo "Error: HUGGING_FACE_HUB_TOKEN environment variable is not set"
+    echo "Please set it by running: export HUGGING_FACE_HUB_TOKEN=your_token"
+    exit 1
+fi
+
+export HUGGING_FACE_HUB_TOKEN
+
+if [ -z "$OPENAI_API_KEY" ]; then
+    echo "Error: OPENAI_API_KEY environment variable is not set"
+    exit 1
+fi
+
+export OPENAI_API_KEY
 
 # Execute each script from src directory
 python baseline/hyde_fc_generation_optimized.py \
