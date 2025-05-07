@@ -17,32 +17,29 @@ class VLLMGenerator:
         self.device_count = torch.cuda.device_count()
         print(f"Initializing with {self.device_count} GPUs")
 
-        # Check if model_name is a local directory
-        if os.path.exists(model_name) and os.path.isdir(model_name):
-            print(f"Loading model from local directory: {model_name}")
-            self.llm = LLM(
-                model=None,
-                model_dir=model_name,  # Use model_dir for local models
-                tensor_parallel_size=self.device_count,
-                max_model_len=4096,
-                gpu_memory_utilization=0.95,
-                enforce_eager=True,
-                trust_remote_code=True,
-                max_num_batched_tokens=4096,
-                max_num_seqs=batch_size
-            )
-        else:
-            print(f"Loading model from Hugging Face: {model_name}")
-            self.llm = LLM(
-                model=model_name,
-                tensor_parallel_size=self.device_count,
-                max_model_len=4096,
-                gpu_memory_utilization=0.95,
-                enforce_eager=True,
-                trust_remote_code=True,
-                max_num_batched_tokens=4096,
-                max_num_seqs=batch_size
-            )
+        # Extract Hugging Face ID from path if it's a local path
+        if '/' in model_name and 'models--' in model_name:
+            try:
+                # Format is typically: /path/to/models--org--model-name/snapshots/hash
+                model_part = model_name.split('models--')[1].split('/')[0]
+                org = model_part.split('--')[0]
+                # Handle models with dashes in their names
+                model = '--'.join(model_part.split('--')[1:])
+                hf_id = f"{org}/{model}"
+                print(f"Extracted Hugging Face ID from path: {hf_id}")
+                model_name = hf_id
+            except Exception as e:
+                print(f"Error extracting model ID: {e}, using original path")
+
+        print(f"Loading model: {model_name}")
+        self.llm = LLM(
+            model=model_name,
+            tensor_parallel_size=self.device_count,
+            max_model_len=4096,
+            gpu_memory_utilization=0.95,
+            enforce_eager=True,
+            trust_remote_code=True
+        )
 
         self.sampling_params = SamplingParams(
             n=n,

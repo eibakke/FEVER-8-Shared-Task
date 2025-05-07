@@ -118,28 +118,30 @@ def main(args):
     gpu_counts = torch.cuda.device_count()
     print(f"Using {gpu_counts} GPU{'s' if gpu_counts > 1 else ''}")
 
-    # Check if model is a local directory
-    if os.path.exists(args.model) and os.path.isdir(args.model):
-        print(f"Loading model from local directory: {args.model}")
-        llm = LLM(
-            model=None,
-            model_dir=args.model,  # Use model_dir for local paths
-            tensor_parallel_size=gpu_counts,
-            max_model_len=4096,
-            gpu_memory_utilization=0.95,
-            enforce_eager=True,
-            trust_remote_code=True,
-        )
-    else:
-        print(f"Loading model from Hugging Face: {args.model}")
-        llm = LLM(
-            model=args.model,
-            tensor_parallel_size=gpu_counts,
-            max_model_len=4096,
-            gpu_memory_utilization=0.95,
-            enforce_eager=True,
-            trust_remote_code=True,
-        )
+    # Extract Hugging Face ID from path if it's a local path
+    model_name = args.model
+    if '/' in model_name and 'models--' in model_name:
+        try:
+            # Format is typically: /path/to/models--org--model-name/snapshots/hash
+            model_part = model_name.split('models--')[1].split('/')[0]
+            org = model_part.split('--')[0]
+            # Handle models with dashes in their names
+            model = '--'.join(model_part.split('--')[1:])
+            hf_id = f"{org}/{model}"
+            print(f"Extracted Hugging Face ID from path: {hf_id}")
+            model_name = hf_id
+        except Exception as e:
+            print(f"Error extracting model ID: {e}, using original model name")
+
+    print(f"Loading model: {model_name}")
+    llm = LLM(
+        model=model_name,
+        tensor_parallel_size=gpu_counts,
+        max_model_len=4096,
+        gpu_memory_utilization=0.95,
+        enforce_eager=True,
+        trust_remote_code=True
+    )
 
     print(f"Model initialization took: {format_time(time.time() - model_start)}")
 
@@ -164,7 +166,7 @@ def main(args):
             current_batch = examples[batch_idx:batch_end]
 
             # Prepare batch prompts
-            batch_inputs = prepare_prompts(current_batch, tokenizer, args.model)
+            batch_inputs = prepare_prompts(current_batch, tokenizer, model_name)
 
             # Process batch
             outputs = llm.generate(batch_inputs, sampling_params)
