@@ -3,6 +3,7 @@ import argparse
 import torch
 import transformers
 import json
+import os
 from vllm import LLM, SamplingParams
 from datetime import datetime, timedelta
 import time
@@ -117,14 +118,29 @@ def main(args):
     gpu_counts = torch.cuda.device_count()
     print(f"Using {gpu_counts} GPU{'s' if gpu_counts > 1 else ''}")
 
-    llm = LLM(
-        model=args.model,
-        tensor_parallel_size=gpu_counts,
-        max_model_len=4096,
-        gpu_memory_utilization=0.95,
-        enforce_eager=True,
-        trust_remote_code=True,
-    )
+    # Check if model is a local directory
+    if os.path.exists(args.model) and os.path.isdir(args.model):
+        print(f"Loading model from local directory: {args.model}")
+        llm = LLM(
+            model=None,
+            model_dir=args.model,  # Use model_dir for local paths
+            tensor_parallel_size=gpu_counts,
+            max_model_len=4096,
+            gpu_memory_utilization=0.95,
+            enforce_eager=True,
+            trust_remote_code=True,
+        )
+    else:
+        print(f"Loading model from Hugging Face: {args.model}")
+        llm = LLM(
+            model=args.model,
+            tensor_parallel_size=gpu_counts,
+            max_model_len=4096,
+            gpu_memory_utilization=0.95,
+            enforce_eager=True,
+            trust_remote_code=True,
+        )
+
     print(f"Model initialization took: {format_time(time.time() - model_start)}")
 
     sampling_params = SamplingParams(

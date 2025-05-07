@@ -2,6 +2,7 @@ from vllm import LLM, SamplingParams
 import json
 import torch
 import time
+import os
 from datetime import datetime, timedelta
 import argparse
 from tqdm import tqdm
@@ -15,16 +16,34 @@ class VLLMGenerator:
                  stop: List[str] = ['\n\n\n'], batch_size: int = 32):
         self.device_count = torch.cuda.device_count()
         print(f"Initializing with {self.device_count} GPUs")
-        self.llm = LLM(
-            model=model_name,
-            tensor_parallel_size=self.device_count,
-            max_model_len=4096,
-            gpu_memory_utilization=0.95,
-            enforce_eager=True,
-            trust_remote_code=True,
-            max_num_batched_tokens=4096,
-            max_num_seqs=batch_size
-        )
+
+        # Check if model_name is a local directory
+        if os.path.exists(model_name) and os.path.isdir(model_name):
+            print(f"Loading model from local directory: {model_name}")
+            self.llm = LLM(
+                model=None,
+                model_dir=model_name,  # Use model_dir for local models
+                tensor_parallel_size=self.device_count,
+                max_model_len=4096,
+                gpu_memory_utilization=0.95,
+                enforce_eager=True,
+                trust_remote_code=True,
+                max_num_batched_tokens=4096,
+                max_num_seqs=batch_size
+            )
+        else:
+            print(f"Loading model from Hugging Face: {model_name}")
+            self.llm = LLM(
+                model=model_name,
+                tensor_parallel_size=self.device_count,
+                max_model_len=4096,
+                gpu_memory_utilization=0.95,
+                enforce_eager=True,
+                trust_remote_code=True,
+                max_num_batched_tokens=4096,
+                max_num_seqs=batch_size
+            )
+
         self.sampling_params = SamplingParams(
             n=n,
             max_tokens=max_tokens,
