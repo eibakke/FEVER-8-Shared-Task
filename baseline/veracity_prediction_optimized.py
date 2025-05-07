@@ -58,14 +58,10 @@ def main(args):
 
     # Load data
     data_load_start = time.time()
-    try:
-        with open(args.target_data) as f:
-            examples = json.load(f)
-    except:
-        examples = []
-        with open(args.target_data) as f:
-            for line in f:
-                examples.append(json.loads(line))
+    examples = []
+    with open(args.target_data) as f:
+        for line in f:
+            examples.append(json.loads(line))
     print(f"Data loading took: {format_time(time.time() - data_load_start)}")
     print(f"Total examples to process: {len(examples)}")
 
