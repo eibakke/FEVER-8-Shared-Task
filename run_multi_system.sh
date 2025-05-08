@@ -1,13 +1,16 @@
 #!/bin/bash
 
+# Source the configuration file to get shared paths
+source $(dirname "$0")/config.sh
+
 # Get SYSTEM_NAME from multi_system_inference.sh environment
-eval $(grep '^SYSTEM_NAME=' multi_system_inference.sh)
+eval $(grep '^SYSTEM_NAME=' $(dirname "$0")/multi_system_inference.sh)
 
 # Create system-specific directory
-mkdir -p "data_store/${SYSTEM_NAME}"
+mkdir -p "${DATA_STORE}/${SYSTEM_NAME}"
 
 # Output file for timing measurements
-TIMING_FILE="data_store/${SYSTEM_NAME}/measured_timings.txt"
+TIMING_FILE="${DATA_STORE}/${SYSTEM_NAME}/measured_timings.txt"
 
 # Clear or create the timing file
 > "$TIMING_FILE"
@@ -57,15 +60,15 @@ run_script() {
 }
 
 # First run the data download script if needed
-if [ ! -d "data_store/averitec" ] || [ ! -d "knowledge_store" ]; then
-    run_script "Data Download" ./download_data.sh || {
+if [ ! -d "${DATA_STORE}/averitec" ] || [ ! -d "${KNOWLEDGE_STORE}" ]; then
+    run_script "Data Download" $(dirname "$0")/download_data.sh || {
         log_timing "Error: Data download failed"
         exit 1
     }
 fi
 
 # Pass all command-line arguments to multi_system_inference.sh
-run_script "Multi-Perspective System Execution" ./multi_system_inference.sh "$@" || {
+run_script "Multi-Perspective System Execution" $(dirname "$0")/multi_system_inference.sh "$@" || {
     log_timing "Error: Multi-perspective system execution failed"
     exit 1
 }
