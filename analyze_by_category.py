@@ -7,6 +7,7 @@ import pandas as pd
 from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report
+import warnings
 
 
 def load_json_file(filepath):
@@ -139,7 +140,7 @@ def count_questions_by_perspective(questions_data):
     perspective_counts = Counter()
 
     for entry in questions_data:
-        if 'evidence' in entry:
+        if isinstance(entry, dict) and 'evidence' in entry:
             for ev in entry['evidence']:
                 perspective = ev.get('fc_type', 'unknown')
                 perspective_counts[perspective] += 1
@@ -149,6 +150,9 @@ def count_questions_by_perspective(questions_data):
 
 def analyze_by_category(baseline_matched, multi_matched, baseline_questions, multi_questions, output_file):
     """Analyze results broken down by verification category."""
+    # Suppress sklearn warnings
+    warnings.filterwarnings("ignore", category=UserWarning)
+
     # Define the categories
     categories = ["Supported", "Refuted", "Not Enough Evidence", "Conflicting Evidence/Cherrypicking"]
 
@@ -188,227 +192,305 @@ def analyze_by_category(baseline_matched, multi_matched, baseline_questions, mul
         multi_true = [e['true_label'] for e in multi_matched]
         multi_pred = [e['predicted_label'] for e in multi_matched]
 
-        # Create classification reports
-        baseline_report = classification_report(baseline_true, baseline_pred, labels=categories, output_dict=True)
-        multi_report = classification_report(multi_true, multi_pred, labels=categories, output_dict=True)
+        # Handle the case where we have limited data
+        if len(set(baseline_true)) <= 1 or len(set(baseline_pred)) <= 1:
+            f.write(
+                "⚠️ **Warning**: Not enough data for meaningful classification metrics. Need multiple categories in both predictions and ground truth.\n\n")
+        else:
+            # Create classification reports with zero_division=0 to avoid warnings
+            baseline_report = classification_report(baseline_true, baseline_pred,
+                                                    labels=categories,
+                                                    output_dict=True,
+                                                    zero_division=0)
+            multi_report = classification_report(multi_true, multi_pred,
+                                                 labels=categories,
+                                                 output_dict=True,
+                                                 zero_division=0)
 
-        # Write detailed classification reports
-        f.write("### Baseline Classification Report\n\n")
-        f.write("| Category | Precision | Recall | F1-Score | Support |\n")
-        f.write("|----------|-----------|--------|----------|--------|\n")
+            # Write detailed classification reports
+            f.write("### Baseline Classification Report\n\n")
+            f.write("| Category | Precision | Recall | F1-Score | Support |\n")
+            f.write("|----------|-----------|--------|----------|--------|\n")
 
-        for category in categories:
-            if category in baseline_report:
-                cat_stats = baseline_report[category]
-                f.write(
-                    f"| {category} | {cat_stats['precision']:.4f} | {cat_stats['recall']:.4f} | {cat_stats['f1-score']:.4f} | {cat_stats['support']} |\n")
+            for category in categories:
+                if category in baseline_report:
+                    cat_stats = baseline_report[category]
+                    precision = cat_stats['precision'] if cat_stats['support'] > 0 else 0
+                    recall = cat_stats['recall'] if cat_stats['support'] > 0 else 0
+                    f1 = cat_stats['f1-score'] if cat_stats['support'] > 0 else 0
+                    f.write(f"| {category} | {precision:.4f} | {recall:.4f} | {f1:.4f} | {cat_stats['support']} |\n")
 
-        f.write("\n### Multi-perspective Classification Report\n\n")
-        f.write("| Category | Precision | Recall | F1-Score | Support |\n")
-        f.write("|----------|-----------|--------|----------|--------|\n")
+            f.write("\n### Multi-perspective Classification Report\n\n")
+            f.write("| Category | Precision | Recall | F1-Score | Support |\n")
+            f.write("|----------|-----------|--------|----------|--------|\n")
 
-        for category in categories:
-            if category in multi_report:
-                cat_stats = multi_report[category]
-                f.write(
-                    f"| {category} | {cat_stats['precision']:.4f} | {cat_stats['recall']:.4f} | {cat_stats['f1-score']:.4f} | {cat_stats['support']} |\n")
+            for category in categories:
+                if category in multi_report:
+                    cat_stats = multi_report[category]
+                    precision = cat_stats['precision'] if cat_stats['support'] > 0 else 0
+                    recall = cat_stats['recall'] if cat_stats['support'] > 0 else 0
+                    f1 = cat_stats['f1-score'] if cat_stats['support'] > 0 else 0
+                    f.write(f"| {category} | {precision:.4f} | {recall:.4f} | {f1:.4f} | {cat_stats['support']} |\n")
 
-        # Write comparison with absolute improvements
-        f.write("\n### Improvement Analysis\n\n")
-        f.write("| Category | Baseline F1 | Multi F1 | Abs. Improvement | Rel. Improvement |\n")
-        f.write("|----------|-------------|----------|------------------|------------------|\n")
+            # Write comparison with absolute improvements
+            f.write("\n### Improvement Analysis\n\n")
+            f.write("| Category | Baseline F1 | Multi F1 | Abs. Improvement | Rel. Improvement |\n")
+            f.write("|----------|-------------|----------|------------------|------------------|\n")
 
-        for category in categories:
-            if category in baseline_report and category in multi_report:
-                baseline_f1 = baseline_report[category]['f1-score']
-                multi_f1 = multi_report[category]['f1-score']
-                abs_improvement = multi_f1 - baseline_f1
-                rel_improvement = (abs_improvement / baseline_f1) * 100 if baseline_f1 > 0 else float('inf')
+            for category in categories:
+                if category in baseline_report and category in multi_report:
+                    baseline_f1 = baseline_report[category]['f1-score'] if baseline_report[category][
+                                                                               'support'] > 0 else 0
+                    multi_f1 = multi_report[category]['f1-score'] if multi_report[category]['support'] > 0 else 0
+                    abs_improvement = multi_f1 - baseline_f1
+                    rel_improvement = (abs_improvement / baseline_f1) * 100 if baseline_f1 > 0 else float('inf')
 
-                # Highlight improvements
-                abs_improvement_str = f"{abs_improvement:.4f}"
-                rel_improvement_str = f"{rel_improvement:.2f}%"
+                    # Highlight improvements
+                    abs_improvement_str = f"{abs_improvement:.4f}"
+                    rel_improvement_str = f"{rel_improvement:.2f}%" if rel_improvement != float('inf') else "∞"
 
-                if abs_improvement > 0:
-                    abs_improvement_str = f"**+{abs_improvement:.4f}**"
-                    rel_improvement_str = f"**+{rel_improvement:.2f}%**"
+                    if abs_improvement > 0:
+                        abs_improvement_str = f"**+{abs_improvement:.4f}**"
+                        rel_improvement_str = f"**+{rel_improvement:.2f}%**" if rel_improvement != float(
+                            'inf') else "**∞**"
 
-                f.write(
-                    f"| {category} | {baseline_f1:.4f} | {multi_f1:.4f} | {abs_improvement_str} | {rel_improvement_str} |\n")
+                    f.write(
+                        f"| {category} | {baseline_f1:.4f} | {multi_f1:.4f} | {abs_improvement_str} | {rel_improvement_str} |\n")
 
         # Analyze question distribution by category
         f.write("\n## Question Distribution Analysis\n\n")
 
-        # Extract perspectives from multi-perspective questions
+        # Process the questions data
         multi_questions_by_id = {}
-        for q in multi_questions:
-            multi_questions_by_id[str(q.get('claim_id', ''))] = q
 
-        # Count questions by perspective for each category
-        f.write("### Question Count by Perspective and Category\n\n")
-        f.write("| Category | Positive | Negative | Objective | Total |\n")
-        f.write("|----------|----------|----------|-----------|-------|\n")
+        # Handle different possible data structures
+        for q_entry in multi_questions:
+            if isinstance(q_entry, dict) and 'claim_id' in q_entry:
+                multi_questions_by_id[str(q_entry['claim_id'])] = q_entry
 
-        for category in categories:
-            category_entries = multi_by_category[category]
+        # If we couldn't get any question data, note this in the output
+        if not multi_questions_by_id:
+            f.write("⚠️ **Warning**: Could not extract question data by claim ID.\n\n")
 
-            # Initialize counters
-            positive_count = 0
-            negative_count = 0
-            objective_count = 0
-            total_count = 0
+            # Try to count perspectives from the raw data
+            perspective_counts = defaultdict(int)
+            evidence_count = 0
 
-            # Count questions by perspective for this category
-            for entry in category_entries:
-                claim_id = entry['claim_id']
-                if claim_id in multi_questions_by_id:
-                    q_data = multi_questions_by_id[claim_id]
-                    if 'evidence' in q_data:
-                        for ev in q_data['evidence']:
+            try:
+                for q_entry in multi_questions:
+                    if isinstance(q_entry, dict) and 'evidence' in q_entry:
+                        for ev in q_entry['evidence']:
                             perspective = ev.get('fc_type', 'unknown')
-                            if perspective.lower() == 'positive':
-                                positive_count += 1
-                            elif perspective.lower() == 'negative':
-                                negative_count += 1
-                            elif perspective.lower() == 'objective':
-                                objective_count += 1
-                            total_count += 1
+                            perspective_counts[perspective] += 1
+                            evidence_count += 1
 
-            f.write(f"| {category} | {positive_count} | {negative_count} | {objective_count} | {total_count} |\n")
+                f.write("### Overall Perspective Distribution\n\n")
 
-        # Analyze perspective contribution to correct predictions
-        f.write("\n### Impact of Perspectives on Prediction Accuracy\n\n")
+                if evidence_count > 0:
+                    f.write("| Perspective | Count | Percentage |\n")
+                    f.write("|------------|-------|------------|\n")
 
-        # For each category, analyze successful vs. failed cases
-        for category in categories:
-            f.write(f"\n#### {category}\n\n")
+                    for perspective, count in perspective_counts.items():
+                        percentage = (count / evidence_count) * 100
+                        f.write(f"| {perspective.capitalize()} | {count} | {percentage:.2f}% |\n")
+                else:
+                    f.write("No perspective data available.\n\n")
+            except:
+                f.write("Error processing question data for perspective distribution.\n\n")
+        else:
+            # Count questions by perspective for each category
+            f.write("### Question Count by Perspective and Category\n\n")
+            f.write("| Category | Positive | Negative | Objective | Unknown | Total |\n")
+            f.write("|----------|----------|----------|-----------|---------|-------|\n")
 
-            correct_cases = [e for e in multi_by_category[category] if e['predicted_label'] == e['true_label']]
-            incorrect_cases = [e for e in multi_by_category[category] if e['predicted_label'] != e['true_label']]
+            for category in categories:
+                category_entries = multi_by_category[category]
 
-            f.write(
-                f"Total cases: {len(multi_by_category[category])}, Correct: {len(correct_cases)}, Incorrect: {len(incorrect_cases)}\n\n")
+                # Initialize counters
+                positive_count = 0
+                negative_count = 0
+                objective_count = 0
+                unknown_count = 0
+                total_count = 0
 
-            if correct_cases:
-                f.write("**Perspective distribution in correct predictions:**\n\n")
-
-                correct_perspectives = Counter()
-                for entry in correct_cases:
+                # Count questions by perspective for this category
+                for entry in category_entries:
                     claim_id = entry['claim_id']
                     if claim_id in multi_questions_by_id:
                         q_data = multi_questions_by_id[claim_id]
                         if 'evidence' in q_data:
                             for ev in q_data['evidence']:
-                                perspective = ev.get('fc_type', 'unknown')
-                                correct_perspectives[perspective] += 1
+                                perspective = ev.get('fc_type', 'unknown').lower()
+                                if perspective == 'positive':
+                                    positive_count += 1
+                                elif perspective == 'negative':
+                                    negative_count += 1
+                                elif perspective == 'objective':
+                                    objective_count += 1
+                                else:
+                                    unknown_count += 1
+                                total_count += 1
 
-                total_correct = sum(correct_perspectives.values())
-                if total_correct > 0:
-                    f.write("| Perspective | Count | Percentage |\n")
-                    f.write("|------------|-------|------------|\n")
+                f.write(
+                    f"| {category} | {positive_count} | {negative_count} | {objective_count} | {unknown_count} | {total_count} |\n")
 
-                    for perspective, count in correct_perspectives.most_common():
-                        percentage = (count / total_correct) * 100
-                        f.write(f"| {perspective.capitalize()} | {count} | {percentage:.2f}% |\n")
+            # Analyze perspective contribution to correct predictions
+            f.write("\n### Impact of Perspectives on Prediction Accuracy\n\n")
 
-            if incorrect_cases:
-                f.write("\n**Perspective distribution in incorrect predictions:**\n\n")
+            # For each category, analyze successful vs. failed cases
+            for category in categories:
+                category_entries = multi_by_category[category]
+                if not category_entries:
+                    continue
 
-                incorrect_perspectives = Counter()
-                for entry in incorrect_cases:
-                    claim_id = entry['claim_id']
-                    if claim_id in multi_questions_by_id:
-                        q_data = multi_questions_by_id[claim_id]
-                        if 'evidence' in q_data:
-                            for ev in q_data['evidence']:
-                                perspective = ev.get('fc_type', 'unknown')
-                                incorrect_perspectives[perspective] += 1
+                f.write(f"\n#### {category}\n\n")
 
-                total_incorrect = sum(incorrect_perspectives.values())
-                if total_incorrect > 0:
-                    f.write("| Perspective | Count | Percentage |\n")
-                    f.write("|------------|-------|------------|\n")
+                correct_cases = [e for e in category_entries if e['predicted_label'] == e['true_label']]
+                incorrect_cases = [e for e in category_entries if e['predicted_label'] != e['true_label']]
 
-                    for perspective, count in incorrect_perspectives.most_common():
-                        percentage = (count / total_incorrect) * 100
-                        f.write(f"| {perspective.capitalize()} | {count} | {percentage:.2f}% |\n")
+                f.write(
+                    f"Total cases: {len(category_entries)}, Correct: {len(correct_cases)}, Incorrect: {len(incorrect_cases)}\n\n")
+
+                if correct_cases:
+                    f.write("**Perspective distribution in correct predictions:**\n\n")
+
+                    correct_perspectives = Counter()
+                    for entry in correct_cases:
+                        claim_id = entry['claim_id']
+                        if claim_id in multi_questions_by_id:
+                            q_data = multi_questions_by_id[claim_id]
+                            if 'evidence' in q_data:
+                                for ev in q_data['evidence']:
+                                    perspective = ev.get('fc_type', 'unknown')
+                                    correct_perspectives[perspective] += 1
+
+                    total_correct = sum(correct_perspectives.values())
+                    if total_correct > 0:
+                        f.write("| Perspective | Count | Percentage |\n")
+                        f.write("|------------|-------|------------|\n")
+
+                        for perspective, count in correct_perspectives.most_common():
+                            percentage = (count / total_correct) * 100
+                            f.write(f"| {perspective.capitalize()} | {count} | {percentage:.2f}% |\n")
+
+                if incorrect_cases:
+                    f.write("\n**Perspective distribution in incorrect predictions:**\n\n")
+
+                    incorrect_perspectives = Counter()
+                    for entry in incorrect_cases:
+                        claim_id = entry['claim_id']
+                        if claim_id in multi_questions_by_id:
+                            q_data = multi_questions_by_id[claim_id]
+                            if 'evidence' in q_data:
+                                for ev in q_data['evidence']:
+                                    perspective = ev.get('fc_type', 'unknown')
+                                    incorrect_perspectives[perspective] += 1
+
+                    total_incorrect = sum(incorrect_perspectives.values())
+                    if total_incorrect > 0:
+                        f.write("| Perspective | Count | Percentage |\n")
+                        f.write("|------------|-------|------------|\n")
+
+                        for perspective, count in incorrect_perspectives.most_common():
+                            percentage = (count / total_incorrect) * 100
+                            f.write(f"| {perspective.capitalize()} | {count} | {percentage:.2f}% |\n")
 
         # Add examples from the most challenging categories
         challenging_categories = ["Not Enough Evidence", "Conflicting Evidence/Cherrypicking"]
 
         f.write("\n## Examples from Challenging Categories\n\n")
 
+        # Check if we have any examples from these categories
+        has_examples = False
         for category in challenging_categories:
-            f.write(f"\n### {category} Examples\n\n")
+            if category in multi_by_category and multi_by_category[category]:
+                has_examples = True
+                break
 
-            # Get improved and degraded examples
-            improved_examples = []
-            degraded_examples = []
+        if not has_examples:
+            f.write("No examples available for the challenging categories.\n\n")
+        else:
+            for category in challenging_categories:
+                if category not in multi_by_category or not multi_by_category[category]:
+                    continue
 
-            for multi_entry in multi_by_category[category]:
-                claim_id = multi_entry['claim_id']
+                f.write(f"\n### {category} Examples\n\n")
 
-                # Find matching baseline entry
-                baseline_entry = next((e for e in baseline_by_category[category] if e['claim_id'] == claim_id), None)
+                # Get improved and degraded examples
+                improved_examples = []
+                degraded_examples = []
 
-                if baseline_entry:
-                    baseline_correct = baseline_entry['predicted_label'] == baseline_entry['true_label']
-                    multi_correct = multi_entry['predicted_label'] == multi_entry['true_label']
+                for multi_entry in multi_by_category[category]:
+                    claim_id = multi_entry['claim_id']
 
-                    if multi_correct and not baseline_correct:
-                        improved_examples.append((baseline_entry, multi_entry))
-                    elif baseline_correct and not multi_correct:
-                        degraded_examples.append((baseline_entry, multi_entry))
+                    # Find matching baseline entry
+                    baseline_entry = next((e for e in baseline_by_category[category] if e['claim_id'] == claim_id),
+                                          None)
 
-            # Show some examples of improvements
-            f.write(f"#### Improved Cases ({len(improved_examples)} examples)\n\n")
+                    if baseline_entry:
+                        baseline_correct = baseline_entry['predicted_label'] == baseline_entry['true_label']
+                        multi_correct = multi_entry['predicted_label'] == multi_entry['true_label']
 
-            for i, (baseline, multi) in enumerate(improved_examples[:3]):
-                f.write(f"**Example {i + 1}**: {multi['claim']}\n\n")
-                f.write(f"- True label: {multi['true_label']}\n")
-                f.write(f"- Baseline prediction: {baseline['predicted_label']} (incorrect)\n")
-                f.write(f"- Multi-perspective prediction: {multi['predicted_label']} (correct)\n\n")
+                        if multi_correct and not baseline_correct:
+                            improved_examples.append((baseline_entry, multi_entry))
+                        elif baseline_correct and not multi_correct:
+                            degraded_examples.append((baseline_entry, multi_entry))
 
-                # Show question counts by perspective for this example
-                claim_id = multi['claim_id']
-                if claim_id in multi_questions_by_id:
-                    q_data = multi_questions_by_id[claim_id]
-                    if 'evidence' in q_data:
-                        perspective_counts = Counter()
-                        for ev in q_data['evidence']:
-                            perspective = ev.get('fc_type', 'unknown')
-                            perspective_counts[perspective] += 1
+                # Show some examples of improvements
+                if improved_examples:
+                    f.write(f"#### Improved Cases ({len(improved_examples)} examples)\n\n")
 
-                        f.write("Question counts by perspective:\n\n")
-                        for perspective, count in perspective_counts.items():
-                            f.write(f"- {perspective.capitalize()}: {count}\n")
+                    for i, (baseline, multi) in enumerate(improved_examples[:3]):
+                        f.write(f"**Example {i + 1}**: {multi['claim']}\n\n")
+                        f.write(f"- True label: {multi['true_label']}\n")
+                        f.write(f"- Baseline prediction: {baseline['predicted_label']} (incorrect)\n")
+                        f.write(f"- Multi-perspective prediction: {multi['predicted_label']} (correct)\n\n")
 
-                f.write("\n")
+                        # Show question counts by perspective for this example
+                        claim_id = multi['claim_id']
+                        if claim_id in multi_questions_by_id:
+                            q_data = multi_questions_by_id[claim_id]
+                            if 'evidence' in q_data:
+                                perspective_counts = Counter()
+                                for ev in q_data['evidence']:
+                                    perspective = ev.get('fc_type', 'unknown')
+                                    perspective_counts[perspective] += 1
 
-            # Show some examples of degradations
-            f.write(f"#### Degraded Cases ({len(degraded_examples)} examples)\n\n")
+                                f.write("Question counts by perspective:\n\n")
+                                for perspective, count in perspective_counts.items():
+                                    f.write(f"- {perspective.capitalize()}: {count}\n")
 
-            for i, (baseline, multi) in enumerate(degraded_examples[:3]):
-                f.write(f"**Example {i + 1}**: {multi['claim']}\n\n")
-                f.write(f"- True label: {multi['true_label']}\n")
-                f.write(f"- Baseline prediction: {baseline['predicted_label']} (correct)\n")
-                f.write(f"- Multi-perspective prediction: {multi['predicted_label']} (incorrect)\n\n")
+                        f.write("\n")
+                else:
+                    f.write("No improved cases for this category.\n\n")
 
-                # Show question counts by perspective for this example
-                claim_id = multi['claim_id']
-                if claim_id in multi_questions_by_id:
-                    q_data = multi_questions_by_id[claim_id]
-                    if 'evidence' in q_data:
-                        perspective_counts = Counter()
-                        for ev in q_data['evidence']:
-                            perspective = ev.get('fc_type', 'unknown')
-                            perspective_counts[perspective] += 1
+                # Show some examples of degradations
+                if degraded_examples:
+                    f.write(f"#### Degraded Cases ({len(degraded_examples)} examples)\n\n")
 
-                        f.write("Question counts by perspective:\n\n")
-                        for perspective, count in perspective_counts.items():
-                            f.write(f"- {perspective.capitalize()}: {count}\n")
+                    for i, (baseline, multi) in enumerate(degraded_examples[:3]):
+                        f.write(f"**Example {i + 1}**: {multi['claim']}\n\n")
+                        f.write(f"- True label: {multi['true_label']}\n")
+                        f.write(f"- Baseline prediction: {baseline['predicted_label']} (correct)\n")
+                        f.write(f"- Multi-perspective prediction: {multi['predicted_label']} (incorrect)\n\n")
 
-                f.write("\n")
+                        # Show question counts by perspective for this example
+                        claim_id = multi['claim_id']
+                        if claim_id in multi_questions_by_id:
+                            q_data = multi_questions_by_id[claim_id]
+                            if 'evidence' in q_data:
+                                perspective_counts = Counter()
+                                for ev in q_data['evidence']:
+                                    perspective = ev.get('fc_type', 'unknown')
+                                    perspective_counts[perspective] += 1
+
+                                f.write("Question counts by perspective:\n\n")
+                                for perspective, count in perspective_counts.items():
+                                    f.write(f"- {perspective.capitalize()}: {count}\n")
+
+                        f.write("\n")
+                else:
+                    f.write("No degraded cases for this category.\n\n")
 
     print(f"Analysis written to: {output_file}")
 
