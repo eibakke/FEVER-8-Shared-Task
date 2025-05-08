@@ -16,15 +16,21 @@ SETUP=${1:-0}
 # Shift the first argument (SETUP) so we can pass remaining args
 shift 2>/dev/null || true
 
-# Get the directory of the script
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Get the absolute path to the user's home directory version of the code
+# The job was submitted from this directory
+SUBMIT_DIR=$(pwd)
 
 # Path to shared project directory
 SHARED_PROJECT_PATH="/fp/projects01/ec403/IN5550_students/EivindogNora/FEVER-8-Shared-Task"
 
-# Print the current working directory
-echo "Working directory: ${SCRIPT_DIR}"
+# Print diagnostics
+echo "Job submitted from: ${SUBMIT_DIR}"
+echo "SLURM working directory: $(pwd)"
 echo "Shared project path: ${SHARED_PROJECT_PATH}"
+
+# Always change to the submission directory to find our scripts
+cd "${SUBMIT_DIR}"
+echo "Changed to directory: $(pwd)"
 
 # Load required CUDA module for GPU tasks
 module load CUDA/11.7.0
@@ -54,8 +60,11 @@ conda activate hero
 echo "Current environment:"
 conda info --envs
 
+echo "Files in current directory:"
+ls -la
+
 echo "Running the baseline system with arguments: $@"
-# Pass all remaining arguments to run_system.sh
-"${SCRIPT_DIR}/run_system.sh" "$@"
+# Use the full path to run_system.sh from the submission directory
+"${SUBMIT_DIR}/run_system.sh" "$@"
 
 echo "Job completed"
