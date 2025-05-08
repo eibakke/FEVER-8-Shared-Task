@@ -279,7 +279,6 @@ def find_hypo_fc_docs(claim_info, system_name, verbose=False):
 def extract_reference_qa_pairs(reference_data):
     """Extract question-answer pairs from reference data."""
     qa_pairs = []
-
     try:
         if 'questions' in reference_data:
             for q_item in reference_data['questions']:
@@ -474,7 +473,6 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
 
                     mdfile.write(f"### Sample {i + 1}: Claim {claim_id}\n\n")
                     mdfile.write(f"**Claim**: {claim_text}\n\n")
-
                     # Write veracity predictions comparison
                     mdfile.write("#### Veracity Predictions\n\n")
 
@@ -602,6 +600,7 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                             mdfile.write(f"**{system} Justification**:\n\n")
                             sys_info = get_veracity_info(claim_info, system)
                             mdfile.write(f"```\n{sys_info['justification']}\n```\n\n")
+
 
                     mdfile.write("---\n\n")
             else:
