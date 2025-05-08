@@ -1,47 +1,65 @@
 #!/bin/bash
 
-BASE_PATH="."
+# Source the configuration to get shared paths
+source $(dirname "$0")/config.sh
 
-# Create required directories if they don't exist
-mkdir -p $BASE_PATH/data_store
-mkdir -p $BASE_PATH/data_store/averitec
-mkdir -p $BASE_PATH/knowledge_store
+# Create directories
+mkdir -p "${DATA_STORE}/averitec"
+mkdir -p "${KNOWLEDGE_STORE}/dev"
+mkdir -p "${KNOWLEDGE_STORE}/test"
 
-# For downloading json files
-if [ ! -f "$BASE_PATH/data_store/averitec/train.json" ]; then
-    wget https://huggingface.co/chenxwh/AVeriTeC/resolve/main/data/train.json -O $BASE_PATH/data_store/averitec/train.json
-fi
+# Function to download a file if it doesn't exist
+download_if_not_exists() {
+    local url=$1
+    local target=$2
 
-if [ ! -f "$BASE_PATH/data_store/averitec/dev.json" ]; then
-    wget https://huggingface.co/chenxwh/AVeriTeC/resolve/main/data/dev.json -O $BASE_PATH/data_store/averitec/dev.json
-fi
+    if [ ! -f "$target" ]; then
+        echo "Downloading $(basename "$target")..."
+        wget -O "$target" "$url"
+        if [ $? -ne 0 ]; then
+            echo "Error downloading $url"
+            rm -f "$target"  # Remove partial file
+            return 1
+        fi
+    else
+        echo "$(basename "$target") already exists."
+    fi
+    return 0
+}
 
-if [ ! -f "$BASE_PATH/data_store/averitec/test_2025.json" ]; then
-    wget https://huggingface.co/chenxwh/AVeriTeC/resolve/main/data/test_2025.json -O $BASE_PATH/data_store/averitec/test_2025.json
-fi
+# Function to extract a file if it doesn't exist
+extract_if_not_exists() {
+    local archive=$1
+    local target_dir=$2
 
-# For knowledge store - dev set
-if [ ! -d "$BASE_PATH/knowledge_store/dev" ]; then
-    wget https://huggingface.co/chenxwh/AVeriTeC/resolve/main/data_store/knowledge_store/dev_knowledge_store.zip -O $BASE_PATH/knowledge_store/dev_knowledge_store.zip
-    unzip $BASE_PATH/knowledge_store/dev_knowledge_store.zip -d $BASE_PATH/knowledge_store/
-    mv $BASE_PATH/knowledge_store/output_dev $BASE_PATH/knowledge_store/dev
-    rm $BASE_PATH/knowledge_store/dev_knowledge_store.zip
-fi
+    # Check if the directory is empty
+    if [ -z "$(ls -A "$target_dir" 2>/dev/null)" ]; then
+        echo "Extracting $(basename "$archive") to $target_dir..."
+        tar -xzf "$archive" -C "$target_dir" --strip-components=1
+        if [ $? -ne 0 ]; then
+            echo "Error extracting $archive"
+            return 1
+        fi
+    else
+        echo "$(basename "$target_dir") already has files."
+    fi
+    return 0
+}
 
-# For knowledge store - test set
-if [ ! -d "$BASE_PATH/knowledge_store/test_2025" ]; then
-    # Get list of zip files from the test_2025 directory
-    TEST_FILES=$(curl -s https://huggingface.co/chenxwh/AVeriTeC/tree/main/data_store/knowledge_store/test_2025 | grep -o '/chenxwh/AVeriTeC/resolve/main/[^"]*\.zip' | awk -F'/' '{print $NF}' | sort -u)
-    echo $TEST_FILES;
+# Download data files
+DEV_DATA_URL="https://github.com/Raldir/FEVER-8-Shared-Task/releases/download/v1.0/averitec_dev.json"
+DEV_KNOWLEDGE_URL="https://github.com/Raldir/FEVER-8-Shared-Task/releases/download/v1.0/dev_knowledge_store.tar.gz"
+TEST_KNOWLEDGE_URL="https://github.com/Raldir/FEVER-8-Shared-Task/releases/download/v1.0/test_knowledge_store.tar.gz"
 
-    mkdir -p "$BASE_PATH/knowledge_store/test_2025"
-    
-    for file in $TEST_FILES; do
-        echo "Processing $file"
-        filename=$(basename "$file")
-        wget -q "https://huggingface.co/chenxwh/AVeriTeC/resolve/main/data_store/knowledge_store/test_2025/$filename?download=true" \
-            -O "$BASE_PATH/knowledge_store/test_2025/$filename" && \
-        unzip "$BASE_PATH/knowledge_store/test_2025/$filename" -d "$BASE_PATH/knowledge_store/test_2025" && \
-        rm "$BASE_PATH/knowledge_store/test_2025/$filename"
-    done
-fi
+# Download and extract dev files
+download_if_not_exists "$DEV_DATA_URL" "${DATA_STORE}/averitec/dev.json" || exit 1
+
+# Download knowledge store
+download_if_not_exists "$DEV_KNOWLEDGE_URL" "${DATA_STORE}/dev_knowledge_store.tar.gz" || exit 1
+download_if_not_exists "$TEST_KNOWLEDGE_URL" "${DATA_STORE}/test_knowledge_store.tar.gz" || exit 1
+
+# Extract knowledge store
+extract_if_not_exists "${DATA_STORE}/dev_knowledge_store.tar.gz" "${KNOWLEDGE_STORE}/dev" || exit 1
+extract_if_not_exists "${DATA_STORE}/test_knowledge_store.tar.gz" "${KNOWLEDGE_STORE}/test" || exit 1
+
+echo "Data download and extraction completed successfully."

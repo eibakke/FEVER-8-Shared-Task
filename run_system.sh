@@ -1,13 +1,16 @@
 #!/bin/bash
 
-# Get SYSTEM_NAME from run_system.sh environment
-eval $(grep '^SYSTEM_NAME=' system_inference.sh)
+# Source the configuration file to get shared paths
+source $(dirname "$0")/config.sh
 
-# Create system-specific directory
-mkdir -p "data_store/${SYSTEM_NAME}"
+# Get SYSTEM_NAME from system_inference.sh environment
+eval $(grep '^SYSTEM_NAME=' $(dirname "$0")/system_inference.sh)
+
+# Create system-specific directory in shared space
+mkdir -p "${DATA_STORE}/${SYSTEM_NAME}"
 
 # Output file for timing measurements
-TIMING_FILE="data_store/${SYSTEM_NAME}/measured_timings.txt"
+TIMING_FILE="${DATA_STORE}/${SYSTEM_NAME}/measured_timings.txt"
 
 # Clear or create the timing file
 > "$TIMING_FILE"
@@ -40,30 +43,32 @@ run_script() {
     local script_name="$1"
     shift  # Remove the first argument (script_name)
     local start_time=$SECONDS
-    
+
     log_timing "Starting $script_name at $(date '+%Y-%m-%d %H:%M:%S')"
-    
+
     # Run the command and capture its exit status
     "$@"
     local status=$?
-    
+
     local duration=$((SECONDS - start_time))
     log_timing "Finished $script_name at $(date '+%Y-%m-%d %H:%M:%S')"
     log_timing "Duration: $(format_time $duration)"
     log_timing "----------------------------------------"
-    
+
     # Return the script's exit status
     return $status
 }
 
-# First run the data download script
-run_script "Data Download" ./download_data.sh || {
-    log_timing "Error: Data download failed"
-    exit 1
-}
+# First run the data download script if needed
+if [ ! -d "${DATA_STORE}/averitec" ] || [ ! -d "${KNOWLEDGE_STORE}" ]; then
+    run_script "Data Download" $(dirname "$0")/download_data.sh || {
+        log_timing "Error: Data download failed"
+        exit 1
+    }
+fi
 
 # Pass all command-line arguments to system_inference.sh
-run_script "Main Execution" ./system_inference.sh "$@" || {
+run_script "Main Execution" $(dirname "$0")/system_inference.sh "$@" || {
     log_timing "Error: Main execution failed"
     exit 1
 }
@@ -73,4 +78,3 @@ total_duration=$((SECONDS - start_time_total))
 log_timing "============================================"
 log_timing "Total execution time: $(format_time $total_duration)"
 log_timing "Script completed at $(date '+%Y-%m-%d %H:%M:%S')"
-
