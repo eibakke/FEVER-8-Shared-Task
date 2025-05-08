@@ -305,7 +305,7 @@ def extract_reference_qa_pairs(reference_data):
     return qa_pairs
 
 
-def extract_system_qa_pairs(system_data, is_multi_perspective=False):
+def extract_system_qa_pairs(system_data, is_multi_perspective=False, max_questions=30):
     """Extract question-answer pairs from system data."""
     qa_pairs = []
 
@@ -346,30 +346,33 @@ def extract_system_qa_pairs(system_data, is_multi_perspective=False):
         # Now select QA pairs from each perspective to provide a balanced representation
         all_perspectives = list(qa_by_perspective.keys())
 
-        # Add QA pairs from each perspective (up to 2 from each)
+        # Initialize counters for each perspective
+        per_perspective_count = max(5, max_questions // (len(all_perspectives) or 1))
+
+        # Add QA pairs from each perspective
         for perspective in ['positive', 'negative', 'objective']:
             if perspective in qa_by_perspective:
-                qa_pairs.extend(qa_by_perspective[perspective][:2])
+                qa_pairs.extend(qa_by_perspective[perspective][:per_perspective_count])
 
-        # If there are still slots available, add more questions from perspectives with more QA pairs
-        remaining_perspectives = sorted(all_perspectives,
-                                        key=lambda p: len(qa_by_perspective[p]),
-                                        reverse=True)
+        # If there are still slots available, add more questions
+        remaining_slots = max_questions - len(qa_pairs)
+        if remaining_slots > 0:
+            # Find perspectives with more QA pairs than we've already included
+            extra_pairs = []
+            for perspective in all_perspectives:
+                pairs = qa_by_perspective[perspective]
+                if len(pairs) > per_perspective_count:
+                    extra_pairs.extend(pairs[per_perspective_count:])
 
-        for perspective in remaining_perspectives:
-            pairs = qa_by_perspective[perspective]
-            if len(pairs) > 2:
-                qa_pairs.extend(pairs[2:4])  # Add two more if available
-
-            if len(qa_pairs) >= 10:  # Limit to 10 total
-                break
+            # Add as many extra pairs as will fit
+            qa_pairs.extend(extra_pairs[:remaining_slots])
 
     # For standard systems, extract QA pairs normally
     else:
         if 'questions' in system_data:
             try:
                 if 'evidence' in system_data['questions']:
-                    for qa in system_data['questions']['evidence']:
+                    for qa in system_data['questions']['evidence'][:max_questions]:
                         qa_pairs.append((
                             qa.get('question', ''),
                             qa.get('answer', ''),
@@ -406,7 +409,8 @@ def get_veracity_info(claim_info, system_name):
     return {"label": "Unknown", "justification": ""}
 
 
-def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=5, verbose=False):
+def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=5, verbose=False,
+                               max_questions=30, text_truncation=250):
     """Generate a markdown file with detailed analysis comparing multiple systems."""
     claims_by_label = get_unique_claims_by_label(pipeline_results, verbose)
     systems = [s for s in pipeline_results.keys() if s != "reference"]
@@ -536,7 +540,8 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                             is_multi = system in ["multi_perspective", "multi_fc"]
                             all_qa_pairs[system] = extract_system_qa_pairs(
                                 claim_info.get(system, {}),
-                                is_multi_perspective=is_multi
+                                is_multi_perspective=is_multi,
+                                max_questions=max_questions
                             )
 
                     # Write each system's QA pairs
@@ -555,8 +560,8 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                                     q = q[len(f"[{perspective}]"):].strip()
 
                                 # Truncate long questions/answers for readability
-                                q_short = (q[:75] + "...") if len(q) > 75 else q
-                                a_short = (a[:75] + "...") if len(a) > 75 else a
+                                q_short = (q[:text_truncation] + "...") if len(q) > text_truncation else q
+                                a_short = (a[:text_truncation] + "...") if len(a) > text_truncation else a
 
                                 # Capitalize perspective
                                 perspective_display = perspective.capitalize() if perspective else "Unknown"
@@ -571,8 +576,8 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                                     qa_pairs):  # Ignore the perspective field for non-multi systems
 
                                 # Truncate long questions/answers for readability
-                                q_short = (q[:75] + "...") if len(q) > 75 else q
-                                a_short = (a[:75] + "...") if len(a) > 75 else a
+                                q_short = (q[:text_truncation] + "...") if len(q) > text_truncation else q
+                                a_short = (a[:text_truncation] + "...") if len(a) > text_truncation else a
 
                                 mdfile.write(f"| {j + 1} | {q_short} | {a_short} |\n")
 
@@ -614,6 +619,9 @@ def main():
     parser.add_argument('--output', default='system_comparison.md', help='Output file path')
     parser.add_argument('--format', choices=['csv', 'markdown'], default='markdown', help='Output format')
     parser.add_argument('--samples', type=int, default=5, help='Number of samples per label')
+    parser.add_argument('--max-questions', type=int, default=30,
+                        help='Maximum number of questions to display per system')
+    parser.add_argument('--truncate-at', type=int, default=250, help='Character count before truncating text in tables')
     parser.add_argument('--verbose', action='store_true', help='Print debug information')
     parser.add_argument('--reference', default=None, help='Path to reference data file')
 
@@ -640,10 +648,12 @@ def main():
         print("CSV format is currently not supported for multi-system comparison")
         print("Using markdown format instead")
         output_file = args.output if args.output.endswith('.md') else args.output + '.md'
-        generate_analysis_markdown(pipeline_results, output_file, args.samples, args.verbose)
+        generate_analysis_markdown(pipeline_results, output_file, args.samples, args.verbose,
+                                   args.max_questions, args.truncate_at)
     else:
         output_file = args.output if args.output.endswith('.md') else args.output + '.md'
-        generate_analysis_markdown(pipeline_results, output_file, args.samples, args.verbose)
+        generate_analysis_markdown(pipeline_results, output_file, args.samples, args.verbose,
+                                   args.max_questions, args.truncate_at)
 
 
 if __name__ == "__main__":
