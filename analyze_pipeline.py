@@ -305,41 +305,53 @@ def extract_reference_qa_pairs(reference_data):
     return qa_pairs
 
 
-def extract_system_qa_pairs(system_data):
+def extract_system_qa_pairs(system_data, is_multi_perspective=False):
     """Extract question-answer pairs from system data."""
     qa_pairs = []
 
-    # First check for merged QA (multi-perspective)
-    if 'merged_qa' in system_data:
+    # Check for merged QA from multi-perspective
+    if 'merged_qa' in system_data and is_multi_perspective:
         try:
             if 'evidence' in system_data['merged_qa']:
                 for qa in system_data['merged_qa']['evidence']:
-                    qa_pairs.append((qa.get('question', ''), qa.get('answer', '')))
+                    # Include fc_type if available
+                    perspective = qa.get('fc_type', '')
+                    perspective_prefix = f"[{perspective}] " if perspective else ""
+                    qa_pairs.append((
+                        f"{perspective_prefix}{qa.get('question', '')}",
+                        qa.get('answer', ''),
+                        perspective
+                    ))
         except (TypeError, AttributeError):
             pass
-
-    # Then check for regular QA
-    elif 'questions' in system_data:
+    # Check for regular QA
+    elif 'questions' in system_data and not is_multi_perspective:
         try:
             if 'evidence' in system_data['questions']:
                 for qa in system_data['questions']['evidence']:
-                    qa_pairs.append((qa.get('question', ''), qa.get('answer', '')))
+                    qa_pairs.append((
+                        qa.get('question', ''),
+                        qa.get('answer', ''),
+                        ""  # No perspective for baseline
+                    ))
         except (TypeError, AttributeError):
             pass
 
-    # Check for perspective-specific QA files
-    for perspective in ['positive', 'negative', 'objective']:
-        key = f'questions_{perspective}'
-        if key in system_data:
-            try:
-                if 'evidence' in system_data[key]:
-                    for qa in system_data[key]['evidence']:
-                        qa_pairs.append((
-                            f"[{perspective}] {qa.get('question', '')}",
-                            qa.get('answer', '')
-                        ))
-            except (TypeError, AttributeError):
-                pass
+    # Check for perspective-specific QA files (these are individual files like questions_positive.json)
+    if is_multi_perspective:
+        for perspective in ['positive', 'negative', 'objective']:
+            key = f'questions_{perspective}'
+            if key in system_data:
+                try:
+                    if 'evidence' in system_data[key]:
+                        for qa in system_data[key]['evidence']:
+                            qa_pairs.append((
+                                f"[{perspective}] {qa.get('question', '')}",
+                                qa.get('answer', ''),
+                                perspective
+                            ))
+                except (TypeError, AttributeError):
+                    pass
 
     return qa_pairs
 
@@ -490,12 +502,17 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
 
                     # Get reference QA pairs if available
                     if "reference" in claim_info:
-                        all_qa_pairs["reference"] = extract_reference_qa_pairs(claim_info["reference"])
+                        ref_qa_pairs = extract_reference_qa_pairs(claim_info["reference"])
+                        all_qa_pairs["reference"] = [(q, a, "") for q, a in ref_qa_pairs]  # Add empty perspective
 
                     # Get QA pairs for each system
                     for system in systems:
                         if system in claim_info:
-                            all_qa_pairs[system] = extract_system_qa_pairs(claim_info.get(system, {}))
+                            is_multi = system in ["multi_perspective", "multi_fc"]
+                            all_qa_pairs[system] = extract_system_qa_pairs(
+                                claim_info.get(system, {}),
+                                is_multi_perspective=is_multi
+                            )
 
                     # Determine max number of QA pairs to show
                     max_pairs = 5
@@ -507,16 +524,48 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                         mdfile.write(f"**{system} Questions and Answers:**\n\n")
 
                         # Create a table for this system's QA pairs
-                        mdfile.write("| # | Question | Answer |\n")
-                        mdfile.write("|---|----------|--------|\n")
+                        if system in ["multi_perspective", "multi_fc"]:
+                            # Include perspective column for multi-perspective systems
+                            mdfile.write("| # | Perspective | Question | Answer |\n")
+                            mdfile.write("|---|------------|----------|--------|\n")
 
-                        for j in range(min(max_pairs, len(qa_pairs))):
-                            if j < len(qa_pairs):
-                                q, a = qa_pairs[j]
-                                # Truncate long questions/answers for readability
-                                q_short = (q[:75] + "...") if len(q) > 75 else q
-                                a_short = (a[:75] + "...") if len(a) > 75 else a
-                                mdfile.write(f"| {j + 1} | {q_short} | {a_short} |\n")
+                            for j in range(min(max_pairs, len(qa_pairs))):
+                                if j < len(qa_pairs):
+                                    q, a, perspective = qa_pairs[j]
+                                    # Remove the perspective prefix from the question if already included
+                                    if q.startswith(f"[{perspective}]"):
+                                        q = q[len(f"[{perspective}]"):].strip()
+
+                                    # Truncate long questions/answers for readability
+                                    q_short = (q[:75] + "...") if len(q) > 75 else q
+                                    a_short = (a[:75] + "...") if len(a) > 75 else a
+
+                                    # Capitalize perspective and use color highlighting if available
+                                    perspective_display = perspective.capitalize() if perspective else "Unknown"
+
+                                    # Color code the perspectives
+                                    if perspective.lower() == "positive":
+                                        perspective_display = f"**{perspective_display}** 📈"
+                                    elif perspective.lower() == "negative":
+                                        perspective_display = f"**{perspective_display}** 📉"
+                                    elif perspective.lower() == "objective":
+                                        perspective_display = f"**{perspective_display}** 📊"
+
+                                    mdfile.write(f"| {j + 1} | {perspective_display} | {q_short} | {a_short} |\n")
+                        else:
+                            # Regular table for baseline and reference
+                            mdfile.write("| # | Question | Answer |\n")
+                            mdfile.write("|---|----------|--------|\n")
+
+                            for j in range(min(max_pairs, len(qa_pairs))):
+                                if j < len(qa_pairs):
+                                    q, a, _ = qa_pairs[j]  # Ignore the perspective field for non-multi systems
+
+                                    # Truncate long questions/answers for readability
+                                    q_short = (q[:75] + "...") if len(q) > 75 else q
+                                    a_short = (a[:75] + "...") if len(a) > 75 else a
+
+                                    mdfile.write(f"| {j + 1} | {q_short} | {a_short} |\n")
 
                         mdfile.write("\n")
 
