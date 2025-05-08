@@ -266,7 +266,7 @@ done
 STEP4_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_merged_qa.json"
 if should_run_step 4 "$STEP4_OUTPUT"; then
     echo "Step 4: Merging question-answer pairs from all perspectives..."
-    python merge_qa.py \
+    python multi_fc/merge_qa.py \
         --qa_files "${QA_OUTPUTS[@]}" \
         --output_file "$STEP4_OUTPUT" \
         --types "${FC_TYPES[@]}" || exit 1
@@ -276,7 +276,7 @@ fi
 STEP5_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"
 if should_run_step 5 "$STEP5_OUTPUT"; then
     echo "Step 5: Running veracity prediction with merged question-answer pairs..."
-    python multi_veracity_prediction.py \
+    python multi_fc/multi_veracity_prediction.py \
         --target_data "$STEP4_OUTPUT" \
         --output_file "$STEP5_OUTPUT" \
         --batch_size $VERACITY_BATCH_SIZE \
@@ -294,7 +294,7 @@ fi
 # Step 7: Evaluate results
 if should_run_step 7 ""; then  # No specific output file for evaluation
     echo "Step 7: Evaluating results..."
-    python baseline/averitec_evaluate_legacy.py \
+    python averitec_evaluate.py \
         --prediction_file "$STEP5_OUTPUT" \
         --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
 fi
