@@ -309,49 +309,74 @@ def extract_system_qa_pairs(system_data, is_multi_perspective=False):
     """Extract question-answer pairs from system data."""
     qa_pairs = []
 
-    # Check for merged QA from multi-perspective
-    if 'merged_qa' in system_data and is_multi_perspective:
-        try:
-            if 'evidence' in system_data['merged_qa']:
-                for qa in system_data['merged_qa']['evidence']:
-                    # Include fc_type if available
-                    perspective = qa.get('fc_type', '')
-                    perspective_prefix = f"[{perspective}] " if perspective else ""
-                    qa_pairs.append((
-                        f"{perspective_prefix}{qa.get('question', '')}",
-                        qa.get('answer', ''),
-                        perspective
-                    ))
-        except (TypeError, AttributeError):
-            pass
-    # Check for regular QA
-    elif 'questions' in system_data and not is_multi_perspective:
-        try:
-            if 'evidence' in system_data['questions']:
-                for qa in system_data['questions']['evidence']:
-                    qa_pairs.append((
-                        qa.get('question', ''),
-                        qa.get('answer', ''),
-                        ""  # No perspective for baseline
-                    ))
-        except (TypeError, AttributeError):
-            pass
-
-    # Check for perspective-specific QA files (these are individual files like questions_positive.json)
+    # For multi-perspective systems, organize QA pairs by perspective
     if is_multi_perspective:
+        qa_by_perspective = defaultdict(list)
+
+        # Check for merged QA from multi-perspective
+        if 'merged_qa' in system_data:
+            try:
+                if 'evidence' in system_data['merged_qa']:
+                    for qa in system_data['merged_qa']['evidence']:
+                        # Include fc_type if available
+                        perspective = qa.get('fc_type', 'unknown')
+                        qa_by_perspective[perspective].append((
+                            qa.get('question', ''),
+                            qa.get('answer', ''),
+                            perspective
+                        ))
+            except (TypeError, AttributeError):
+                pass
+
+        # Check for perspective-specific QA files (these are individual files like questions_positive.json)
         for perspective in ['positive', 'negative', 'objective']:
             key = f'questions_{perspective}'
             if key in system_data:
                 try:
                     if 'evidence' in system_data[key]:
                         for qa in system_data[key]['evidence']:
-                            qa_pairs.append((
-                                f"[{perspective}] {qa.get('question', '')}",
+                            qa_by_perspective[perspective].append((
+                                qa.get('question', ''),
                                 qa.get('answer', ''),
                                 perspective
                             ))
                 except (TypeError, AttributeError):
                     pass
+
+        # Now select QA pairs from each perspective to provide a balanced representation
+        all_perspectives = list(qa_by_perspective.keys())
+
+        # Add QA pairs from each perspective (up to 2 from each)
+        for perspective in ['positive', 'negative', 'objective']:
+            if perspective in qa_by_perspective:
+                qa_pairs.extend(qa_by_perspective[perspective][:2])
+
+        # If there are still slots available, add more questions from perspectives with more QA pairs
+        remaining_perspectives = sorted(all_perspectives,
+                                        key=lambda p: len(qa_by_perspective[p]),
+                                        reverse=True)
+
+        for perspective in remaining_perspectives:
+            pairs = qa_by_perspective[perspective]
+            if len(pairs) > 2:
+                qa_pairs.extend(pairs[2:4])  # Add two more if available
+
+            if len(qa_pairs) >= 10:  # Limit to 10 total
+                break
+
+    # For standard systems, extract QA pairs normally
+    else:
+        if 'questions' in system_data:
+            try:
+                if 'evidence' in system_data['questions']:
+                    for qa in system_data['questions']['evidence']:
+                        qa_pairs.append((
+                            qa.get('question', ''),
+                            qa.get('answer', ''),
+                            ""  # No perspective for baseline
+                        ))
+            except (TypeError, AttributeError):
+                pass
 
     return qa_pairs
 
@@ -514,11 +539,6 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                                 is_multi_perspective=is_multi
                             )
 
-                    # Determine max number of QA pairs to show
-                    max_pairs = 5
-                    for system, qa_pairs in all_qa_pairs.items():
-                        max_pairs = max(max_pairs, min(5, len(qa_pairs)))
-
                     # Write each system's QA pairs
                     for system, qa_pairs in all_qa_pairs.items():
                         mdfile.write(f"**{system} Questions and Answers:**\n\n")
@@ -529,43 +549,32 @@ def generate_analysis_markdown(pipeline_results, output_file, samples_per_label=
                             mdfile.write("| # | Perspective | Question | Answer |\n")
                             mdfile.write("|---|------------|----------|--------|\n")
 
-                            for j in range(min(max_pairs, len(qa_pairs))):
-                                if j < len(qa_pairs):
-                                    q, a, perspective = qa_pairs[j]
-                                    # Remove the perspective prefix from the question if already included
-                                    if q.startswith(f"[{perspective}]"):
-                                        q = q[len(f"[{perspective}]"):].strip()
+                            for j, (q, a, perspective) in enumerate(qa_pairs):
+                                # Remove the perspective prefix from the question if already included
+                                if q.startswith(f"[{perspective}]"):
+                                    q = q[len(f"[{perspective}]"):].strip()
 
-                                    # Truncate long questions/answers for readability
-                                    q_short = (q[:75] + "...") if len(q) > 75 else q
-                                    a_short = (a[:75] + "...") if len(a) > 75 else a
+                                # Truncate long questions/answers for readability
+                                q_short = (q[:75] + "...") if len(q) > 75 else q
+                                a_short = (a[:75] + "...") if len(a) > 75 else a
 
-                                    # Capitalize perspective and use color highlighting if available
-                                    perspective_display = perspective.capitalize() if perspective else "Unknown"
+                                # Capitalize perspective
+                                perspective_display = perspective.capitalize() if perspective else "Unknown"
 
-                                    # Color code the perspectives
-                                    if perspective.lower() == "positive":
-                                        perspective_display = f"**{perspective_display}** 📈"
-                                    elif perspective.lower() == "negative":
-                                        perspective_display = f"**{perspective_display}** 📉"
-                                    elif perspective.lower() == "objective":
-                                        perspective_display = f"**{perspective_display}** 📊"
-
-                                    mdfile.write(f"| {j + 1} | {perspective_display} | {q_short} | {a_short} |\n")
+                                mdfile.write(f"| {j + 1} | **{perspective_display}** | {q_short} | {a_short} |\n")
                         else:
                             # Regular table for baseline and reference
                             mdfile.write("| # | Question | Answer |\n")
                             mdfile.write("|---|----------|--------|\n")
 
-                            for j in range(min(max_pairs, len(qa_pairs))):
-                                if j < len(qa_pairs):
-                                    q, a, _ = qa_pairs[j]  # Ignore the perspective field for non-multi systems
+                            for j, (q, a, _) in enumerate(
+                                    qa_pairs):  # Ignore the perspective field for non-multi systems
 
-                                    # Truncate long questions/answers for readability
-                                    q_short = (q[:75] + "...") if len(q) > 75 else q
-                                    a_short = (a[:75] + "...") if len(a) > 75 else a
+                                # Truncate long questions/answers for readability
+                                q_short = (q[:75] + "...") if len(q) > 75 else q
+                                a_short = (a[:75] + "...") if len(a) > 75 else a
 
-                                    mdfile.write(f"| {j + 1} | {q_short} | {a_short} |\n")
+                                mdfile.write(f"| {j + 1} | {q_short} | {a_short} |\n")
 
                         mdfile.write("\n")
 
