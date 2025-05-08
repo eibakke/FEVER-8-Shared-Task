@@ -77,30 +77,24 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
-        BATCH_SIZE=4
         RERANKING_BATCH_SIZE=16
         QUESTION_GEN_BATCH_SIZE=1
         VERACITY_BATCH_SIZE=1
     elif [ $NUM_EXAMPLES -le 50 ]; then
-        BATCH_SIZE=8
         RERANKING_BATCH_SIZE=32
         QUESTION_GEN_BATCH_SIZE=1
         VERACITY_BATCH_SIZE=1
     elif [ $NUM_EXAMPLES -le 100 ]; then
-        BATCH_SIZE=16
         RERANKING_BATCH_SIZE=64
         QUESTION_GEN_BATCH_SIZE=2
         VERACITY_BATCH_SIZE=2
     else
-        BATCH_SIZE=32
         RERANKING_BATCH_SIZE=128
         QUESTION_GEN_BATCH_SIZE=4
         VERACITY_BATCH_SIZE=4
     fi
 else
     # Default batch sizes for full dataset
-    # REDUCE BATCH SIZE TO AVOID OOM ERRORS
-    BATCH_SIZE=32
     RERANKING_BATCH_SIZE=64  # Reduced from 128 to 64
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
@@ -111,7 +105,7 @@ echo "Starting system inference for ${SYSTEM_NAME} on ${SPLIT} split..."
 echo "Data store: ${DATA_STORE}"
 echo "Knowledge store: ${KNOWLEDGE_STORE}"
 echo "Code path: ${CODE_PATH}"
-echo "Batch sizes - Main: ${BATCH_SIZE}, Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
+echo "Batch sizes - Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
 echo "Starting from step ${RESUME_STEP}"
 
 # Load API keys from .env file
@@ -146,8 +140,7 @@ if [ $RESUME_STEP -le 1 ]; then
     python "${CODE_PATH}/baseline/hyde_fc_generation_optimized.py" \
         --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
-        --model "$MODEL_PATH" \
-        --batch_size $BATCH_SIZE || exit 1
+        --model "$MODEL_PATH" || exit 1
 fi
 
 if [ $RESUME_STEP -le 2 ]; then

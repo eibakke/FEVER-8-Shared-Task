@@ -92,29 +92,24 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
-        BATCH_SIZE=4
         RERANKING_BATCH_SIZE=16
         QUESTION_GEN_BATCH_SIZE=1
         VERACITY_BATCH_SIZE=1
     elif [ $NUM_EXAMPLES -le 50 ]; then
-        BATCH_SIZE=8
         RERANKING_BATCH_SIZE=32
         QUESTION_GEN_BATCH_SIZE=1
         VERACITY_BATCH_SIZE=1
     elif [ $NUM_EXAMPLES -le 100 ]; then
-        BATCH_SIZE=16
         RERANKING_BATCH_SIZE=64
         QUESTION_GEN_BATCH_SIZE=2
         VERACITY_BATCH_SIZE=2
     else
-        BATCH_SIZE=32
         RERANKING_BATCH_SIZE=128
         QUESTION_GEN_BATCH_SIZE=4
         VERACITY_BATCH_SIZE=4
     fi
 else
     # Default batch sizes for full dataset
-    BATCH_SIZE=32
     RERANKING_BATCH_SIZE=128
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
@@ -125,7 +120,7 @@ echo "Starting multi-perspective system inference for ${SYSTEM_NAME} on ${SPLIT}
 echo "Data store: ${DATA_STORE}"
 echo "Knowledge store: ${KNOWLEDGE_STORE}"
 echo "Code path: ${CODE_PATH}"
-echo "Batch sizes - Main: ${BATCH_SIZE}, Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
+echo "Batch sizes - Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
 echo "Starting from step ${START_FROM}"
 if [ ! -z "$SKIP_STEPS" ]; then
     echo "Skipping steps: ${SKIP_STEPS}"
@@ -203,8 +198,7 @@ if should_run_step 1 "$STEP1_OUTPUT"; then
     python "${CODE_PATH}/multi_fc/multi_hyde_fc_generation.py" \
         --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
         --json_output "$STEP1_OUTPUT" \
-        --model "$MODEL_PATH" \
-        --batch_size $BATCH_SIZE || exit 1
+        --model "$MODEL_PATH" || exit 1
 fi
 
 # Step 2: Extract each type of fact-checking document
