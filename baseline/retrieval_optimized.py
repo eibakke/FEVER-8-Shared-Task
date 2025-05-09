@@ -49,7 +49,7 @@ def remove_duplicates(sentences, urls):
     return df['document_in_sentences'].tolist(), df['sentence_urls'].tolist()
                 
 def retrieve_top_k_sentences(query, document, urls, top_k):
-    tokenized_docs = [nltk.word_tokenize(doc) for doc in document[:top_k]]
+    tokenized_docs = [nltk.word_tokenize(doc) for doc in document]
     bm25 = BM25Okapi(tokenized_docs)
     
     scores = bm25.get_scores(nltk.word_tokenize(query))
