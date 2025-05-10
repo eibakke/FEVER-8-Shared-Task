@@ -7,13 +7,13 @@ from functools import partial
 import heapq
 from threading import Thread, Event
 import queue
+import pickle
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import multiprocessing as mp
 from multiprocessing import Pool, Manager, Lock, cpu_count
 
-##
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
@@ -23,65 +23,90 @@ from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
 from haystack import Document
-import json, os
-##
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+STORE_PATH = "document_store.pkl"
 
 def worker_init(path_kb, model_name):
     global DOC_STORE, EMBEDDER
-    DOC_STORE  = build_store(path_kb)
-    EMBEDDER   = SentenceTransformersTextEmbedder(model=model_name)
+
+    # Check if we have a saved document store
+    if os.path.exists(STORE_PATH):
+        print(f"Loading document store from: {STORE_PATH}")
+        with open(STORE_PATH, "rb") as f:
+            DOC_STORE = pickle.load(f)
+    else:
+        # Build and save for future use
+        DOC_STORE = build_store(path_kb)
+        with open(STORE_PATH, "wb") as f:
+            pickle.dump(DOC_STORE, f)
+
+    EMBEDDER = SentenceTransformersTextEmbedder(model=model_name)
     EMBEDDER.warm_up()
+    print("Worker initialized successfully")
 
 
 def build_store(path_kb: str):
-   
+    print(f"Building document store from: {path_kb}")
     doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
 
     indexing = Pipeline()
-    indexing.add_component("clean",   DocumentCleaner())
-    indexing.add_component("split",   DocumentSplitter(split_by="sentence", split_length=1))
-    indexing.add_component("embed",   SentenceTransformersDocumentEmbedder(
-                                         model=MODEL_NAME, meta_fields_to_embed=["url"]))
-    indexing.add_component("writer",  DocumentWriter(doc_store,
-                                         policy=DuplicatePolicy.OVERWRITE))
-    indexing.connect("clean",  "split")
-    indexing.connect("split",  "embed")
-    indexing.connect("embed",  "writer")
+    indexing.add_component("clean", DocumentCleaner())
+    indexing.add_component("split", DocumentSplitter(split_by="sentence", split_length=1))
+    indexing.add_component("embed", SentenceTransformersDocumentEmbedder(
+        model=MODEL_NAME, meta_fields_to_embed=["url"]))
+    indexing.add_component("writer", DocumentWriter(doc_store,
+                                                    policy=DuplicatePolicy.OVERWRITE))
+    indexing.connect("clean", "split")
+    indexing.connect("split", "embed")
+    indexing.connect("embed", "writer")
 
-    #Indexing
+    # Track all sentences to deduplicate across files
+    all_content_seen = set()
+    total_docs = 0
+    unique_docs = 0
+
+    # Indexing with deduplication
     for fn in os.listdir(path_kb):
+        print(f"Processing file: {fn}")
         docs = []
+        file_docs = 0
+
         with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
             for line in fh:
                 data = json.loads(line)
-                for url, txt in zip(data["url"], data["url2text"]):
-                    docs.append(Document(content=txt, meta={"url": url}))
-        indexing.run({"clean": {"documents": docs}})
+                for url, txt in zip([data["url"]] * len(data["url2text"]), data["url2text"]):
+                    total_docs += 1
+                    file_docs += 1
 
+                    # Normalize content for deduplication
+                    content_key = txt.strip().lower()
+
+                    # Only add if we haven't seen this content before
+                    if content_key not in all_content_seen:
+                        all_content_seen.add(content_key)
+                        docs.append(Document(content=txt, meta={"url": url}))
+                        unique_docs += 1
+
+        print(f"File {fn}: {file_docs} total documents, {len(docs)} unique documents")
+
+        # Only run indexing if we have documents to add
+        if docs:
+            indexing.run({"clean": {"documents": docs}})
+
+    print(f"Finished building document store: {unique_docs} unique documents from {total_docs} total")
     return doc_store
 
-def init_retriever(doc_store, top_k):
-    embedder  = SentenceTransformersTextEmbedder(model=MODEL_NAME)
-    retriever = InMemoryEmbeddingRetriever(document_store=doc_store, top_k=top_k)
-    return embedder, retriever
 
 def retrieve_top_k_sentences(query: str, top_k: int):
-    q_vec = EMBEDDER.run(query)["embedding"]
-    #docs  = DOC_STORE.query_by_embedding(q_vec, top_k=top_k)["documents"]
-    #return [d.content for d in docs], [d.meta["url"] for d in docs]
-    docs  = DOC_STORE.query_by_embedding(q_vec, top_k=top_k)["documents"]
-    seen=set(); uniq=[]
-    for d in docs:
-        if d.content not in seen:
-            seen.add(d.content)
-            uniq.append(d)
-        if len(uniq) == top_k:
-            break
-    return [d.content for d in uniq], [d.meta["url"] for d in uniq]
+    try:
+        q_vec = EMBEDDER.run(query)["embedding"]
+        docs = DOC_STORE.query_by_embedding(q_vec, top_k=top_k)["documents"]
 
-
+        return [d.content for d in docs], [d.meta["url"] for d in docs]
+    except Exception as e:
+        print(f"Error in retrieve_top_k_sentences: {str(e)}")
+        return [], []
 
 def process_single_example(idx, example, args, result_queue, counter, lock):
     try:
@@ -93,18 +118,16 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
         start_time = time.time()
         
         query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
-        
-        processing_time = time.time() - start_time
-        print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
+
         sents, urls = retrieve_top_k_sentences(query, args.top_k)
 
-        elapsed = time.time() - start_time
-        print(f"Top-{args.top_k} retrieved in {elapsed:.2f}s")
+        processing_time = time.time() - start_time
+        print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
 
         result = {
             "claim_id": idx,
             "claim": example["claim"],
-            f"top_{args.top_k}":  [{"sentence": s, "url": u} for s, u in zip(sents, urls)],
+            f"top_{args.top_k}": [{"sentence": s, "url": u} for s, u in zip(sents, urls)],
             "hypo_fc_docs": example["hypo_fc_docs"]
         }
         
@@ -114,6 +137,7 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
         print(f"Error processing example {idx}: {str(e)}")
         result_queue.put((idx, None))
         return False
+
 
 def writer_thread(output_file, result_queue, next_index, stop_event):
     pending_results = []
@@ -135,14 +159,19 @@ def writer_thread(output_file, result_queue, next_index, stop_event):
             except queue.Empty:
                 continue
 
+
 def format_time(seconds):
     """Format time duration nicely."""
     return str(timedelta(seconds=round(seconds)))
 
+
 def main(args):
     script_start = time.time()
-    start_time   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Script started at: {start_time}")
+
+    # Create store path directory if needed
+    os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
 
     with open(args.target_data, "r", encoding="utf-8") as fh:
         target_examples = json.load(fh)
@@ -150,19 +179,17 @@ def main(args):
     if args.end == -1:
         args.end = len(target_examples)
 
-    files_to_process    = list(range(args.start, args.end))
+    files_to_process = list(range(args.start, args.end))
     examples_to_process = [(idx, target_examples[idx]) for idx in files_to_process]
     print(f"Total examples to process: {len(examples_to_process)}")
-
-    worker_init(args.knowledge_store_dir, MODEL_NAME)
 
     with Manager() as manager:
         counter = manager.Value('i', 0)
         lock = manager.Lock()
         args.total_examples = len(files_to_process)
-        
-        result_queue = mp.Queue()
-        
+
+        result_queue = manager.Queue()
+
         stop_event = Event()
         writer = Thread(
             target=writer_thread,
@@ -170,18 +197,27 @@ def main(args):
         )
         writer.start()
 
-        results = []
-        for idx, example in examples_to_process:
-            ok = process_single_example(
-                idx, example, args,
-                result_queue, counter, lock
-            )
-            results.append(ok)
-        
+        # Initialize worker function for main process first to build/load document store
+        worker_init(args.knowledge_store_dir, MODEL_NAME)
+
+        # Process examples in parallel with proper worker initialization
+        process_func = partial(
+            process_single_example,
+            args=args,
+            result_queue=result_queue,
+            counter=counter,
+            lock=lock
+        )
+
+        with Pool(processes=args.workers,
+                  initializer=worker_init,
+                  initargs=(args.knowledge_store_dir, MODEL_NAME)) as pool:
+            results = pool.starmap(process_func, examples_to_process)
+
         stop_event.set()
         writer.join()
 
-        successful = sum(results)
+        successful = sum(1 for r in results if r)
         print(f"\nSuccessfully processed {successful} out of {len(files_to_process)} examples")
         print(f"Results written to {args.json_output}")
         
@@ -235,14 +271,21 @@ if __name__ == "__main__":
         "--start",
         type=int,
         default=0,
-        help="Starting index of the files to process.",
+        help="Starting index of examples to process"
     )
     parser.add_argument(
         "-e",
         "--end",
         type=int,
         default=-1,
-        help="End index of the files to process.",
+        help="End index of examples to process"
+    )
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=cpu_count(),
+        help="Number of worker processes"
     )
 
     args = parser.parse_args()
