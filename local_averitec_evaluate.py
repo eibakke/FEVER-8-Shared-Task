@@ -544,8 +544,8 @@ def compute(solution_file, submission_file, model="meta-llama/Meta-Llama-3.1-8B-
     properties = importlib.import_module("properties")
 
     # load golden and predicted file
-    solution_df = pd.read_csv(solution_file)  # golden file
-    submission_df = pd.read_csv(submission_file)  # predicted file
+    solution_df = pd.read_csv(solution_file, engine='python', quotechar='"', doublequote=True, escapechar='\\')  # golden file
+    submission_df = pd.read_csv(submission_file, engine='python', quotechar='"', doublequote=True, escapechar='\\')  # predicted file
 
     # config on Huggingface competition
     public_ids = solution_df[solution_df.split == "gold"]['id'].values
