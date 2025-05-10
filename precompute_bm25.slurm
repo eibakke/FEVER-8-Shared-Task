@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
 #SBATCH --gpus=0
-#SBATCH --cpus-per-task=96
+#SBATCH --cpus-per-task=32
 #SBATCH --output=bm25_precompute_%j.log
 #SBATCH --error=bm25_precompute_%j.log
 
@@ -44,6 +44,6 @@ ls -la
 python precompute_retrieval.py \
     --knowledge_store_dir "${SHARED_PROJECT_PATH}/knowledge_store/dev" \
     --bm25_output_dir "${SHARED_PROJECT_PATH}/knowledge_store/dev/precomputed_bm25" \
-    --workers 96
+    --workers 32
 
 echo "Job completed at: $(date)"
