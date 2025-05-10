@@ -18,6 +18,7 @@ import importlib
 import re
 from vllm import LLM, SamplingParams
 from openai import OpenAI
+import torch
 
 
 def download_nltk_data(package_name, download_dir='nltk_data'):
