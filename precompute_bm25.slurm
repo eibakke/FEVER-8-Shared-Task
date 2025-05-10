@@ -5,6 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
+#SBATCH --gpus=0
 #SBATCH --cpus-per-task=96
 #SBATCH --output=bm25_precompute_%j.log
 #SBATCH --error=bm25_precompute_%j.log
