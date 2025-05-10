@@ -26,9 +26,6 @@ echo "Shared project path: ${SHARED_PROJECT_PATH}"
 cd "${SUBMIT_DIR}"
 echo "Changed to directory: $(pwd)"
 
-# Load Python module if needed
-module load Python/3.10.8-GCCcore-12.2.0
-
 # Activate conda environment from shared location
 source "${SHARED_PROJECT_PATH}/miniconda3/etc/profile.d/conda.sh"
 conda activate hero
