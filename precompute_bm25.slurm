@@ -41,7 +41,7 @@ ls -la
 
 # Run the precomputation script
 # Replace paths with your actual paths
-python precompute_retrieval.py \
+python precompute_knowledge_store.py \
     --knowledge_store_dir "${SHARED_PROJECT_PATH}/knowledge_store/dev" \
     --bm25_output_dir "${SHARED_PROJECT_PATH}/knowledge_store/dev/precomputed_bm25" \
     --workers 32
