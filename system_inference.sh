@@ -190,7 +190,7 @@ fi
 
 if [ $RESUME_STEP -le 7 ]; then
     echo "Step 7: Evaluating results..."
-    python "${CODE_PATH}/averitec_evaluate.py" \
+    python "${CODE_PATH}/local_averitec_evaluate.py" \
         --prediction_file "${CODE_PATH}/leaderboard_submission/submission.csv" \
         --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
 fi
