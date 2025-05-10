@@ -49,22 +49,15 @@ def build_store(path_kb: str):
     indexing.connect("clean",  "split")
     indexing.connect("split",  "embed")
     indexing.connect("embed",  "writer")
-    kb_root = Path(path_kb)
-    json_files = (
-        [kb_root] if kb_root.is_file()                       # user passed a single file
-        else [p for p in kb_root.rglob("*.json") if p.is_file()]  # any depth, .json only
-    )
 
-    for fp in json_files:
+    #Indexing
+    for fn in os.listdir(path_kb):
         docs = []
-        with fp.open(encoding="utf-8") as fh:
+        with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
             for line in fh:
                 data = json.loads(line)
-
-                # `data["url"]` is one string, not a list – keep it that way
-                for txt in data["url2text"]:
-                    docs.append(Document(content=txt, meta={"url": data["url"]}))
-
+                for url, txt in zip(data["url"], data["url2text"]):
+                    docs.append(Document(content=txt, meta={"url": url}))
         indexing.run({"clean": {"documents": docs}})
 
     return doc_store
