@@ -8,6 +8,7 @@ import heapq
 from threading import Thread, Event
 import queue
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import multiprocessing as mp
 from multiprocessing import Pool, Manager, Lock, cpu_count
@@ -35,7 +36,7 @@ def worker_init(path_kb, model_name):
 
 
 def build_store(path_kb: str):
-    """Index everything once – run this only when KB changes."""
+   
     doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
 
     indexing = Pipeline()
@@ -48,15 +49,22 @@ def build_store(path_kb: str):
     indexing.connect("clean",  "split")
     indexing.connect("split",  "embed")
     indexing.connect("embed",  "writer")
+    kb_root = Path(path_kb)
+    json_files = (
+        [kb_root] if kb_root.is_file()                       # user passed a single file
+        else [p for p in kb_root.rglob("*.json") if p.is_file()]  # any depth, .json only
+    )
 
-    #Indexing
-    for fn in os.listdir(path_kb):
+    for fp in json_files:
         docs = []
-        with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
+        with fp.open(encoding="utf-8") as fh:
             for line in fh:
                 data = json.loads(line)
-                for url, txt in zip(data["url"], data["url2text"]):
-                    docs.append(Document(content=txt, meta={"url": url}))
+
+                # `data["url"]` is one string, not a list – keep it that way
+                for txt in data["url2text"]:
+                    docs.append(Document(content=txt, meta={"url": data["url"]}))
+
         indexing.run({"clean": {"documents": docs}})
 
     return doc_store
