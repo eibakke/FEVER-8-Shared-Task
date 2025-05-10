@@ -3,8 +3,8 @@
 #SBATCH --account=ec403
 #SBATCH --time=12:00:00
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=8G
-#SBATCH --partition=compute
+#SBATCH --mem-per-cpu=16G
+#SBATCH --partition=accel
 #SBATCH --cpus-per-task=96
 #SBATCH --output=bm25_precompute_%j.log
 #SBATCH --error=bm25_precompute_%j.log
