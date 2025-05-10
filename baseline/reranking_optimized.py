@@ -78,10 +78,8 @@ def select_top_k(claim, results, top_k):
     top_k_sentences_urls = []
     
     i = 0
-    print(results)
     claim = remove_special_chars_except_spaces(claim).lower()
     while len(top_k_sentences_urls) < top_k and i < len(results):
-        print(i)
         sentence = remove_special_chars_except_spaces(results[i]['sentence']).lower()
         
         if sentence not in dup_check:

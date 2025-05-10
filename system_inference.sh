@@ -185,8 +185,7 @@ if [ $RESUME_STEP -le 6 ]; then
     echo "Step 6: Preparing leaderboard submission..."
     mkdir -p "${CODE_PATH}/leaderboard_submission"
     python "${CODE_PATH}/prepare_leaderboard_submission.py" \
-        --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
-        --output_dir "${CODE_PATH}/leaderboard_submission" || exit 1
+        --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"  || exit 1
 fi
 
 if [ $RESUME_STEP -le 7 ]; then
