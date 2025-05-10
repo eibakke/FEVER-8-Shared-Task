@@ -19,8 +19,6 @@ import re
 from openai import OpenAI
 
 
-
-
 def download_nltk_data(package_name, download_dir='nltk_data'):
     # Ensure the download directory exists
     os.makedirs(download_dir, exist_ok=True)
