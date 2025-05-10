@@ -4,6 +4,7 @@ import os
 import time
 import numpy as np
 import pandas as pd
+import pickle
 import nltk
 from rank_bm25 import BM25Okapi
 from multiprocessing import Pool, cpu_count, Manager, Lock
