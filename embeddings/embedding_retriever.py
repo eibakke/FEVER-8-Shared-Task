@@ -3,14 +3,16 @@ import json
 import os
 import time
 import numpy as np
-from multiprocessing import Pool, cpu_count, Manager, Lock
 from functools import partial
 import heapq
 from threading import Thread, Event
 import queue
 from datetime import datetime, timedelta
+
+import multiprocessing as mp
+from multiprocessing import Pool, Manager, Lock, cpu_count
+
 ##
-from sentence_transformers import SentenceTransformer
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
@@ -24,7 +26,13 @@ import json, os
 ##
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-PATH_KB     = "data_store/knowledge_store"   #NB
+
+def worker_init(path_kb, model_name):
+    global DOC_STORE, EMBEDDER
+    DOC_STORE  = build_store(path_kb)
+    EMBEDDER   = SentenceTransformersTextEmbedder(model=model_name)
+    EMBEDDER.warm_up()
+
 
 def build_store(path_kb: str):
     """Index everything once – run this only when KB changes."""
@@ -41,35 +49,15 @@ def build_store(path_kb: str):
     indexing.connect("split",  "embed")
     indexing.connect("embed",  "writer")
 
-    def build_store(path_kb: str):
-        doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
-
-        pipe = Pipeline()
-        pipe.add_component("clean", DocumentCleaner())
-        pipe.add_component("split", DocumentSplitter(split_by="sentence", split_length=1))
-        pipe.add_component(
-            "embed",
-            SentenceTransformersDocumentEmbedder(
-                model=MODEL_NAME, meta_fields_to_embed=["url"]
-            ),
-        )
-        pipe.add_component(
-            "writer",
-            DocumentWriter(document_store=doc_store, policy=DuplicatePolicy.OVERWRITE),
-        )
-        pipe.connect("clean", "split")
-        pipe.connect("split", "embed")
-        pipe.connect("embed", "writer")
-
-        #Indexing
-        for fn in os.listdir(path_kb):
-            docs = []
-            with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
-                for line in fh:
-                    data = json.loads(line)
-                    for url, txt in zip(data["url"], data["url2text"]):
-                        docs.append(Document(content=txt, meta={"url": url}))
-            pipe.run({"clean": {"documents": docs}})
+    #Indexing
+    for fn in os.listdir(path_kb):
+        docs = []
+        with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
+            for line in fh:
+                data = json.loads(line)
+                for url, txt in zip(data["url"], data["url2text"]):
+                    docs.append(Document(content=txt, meta={"url": url}))
+        indexing.run({"clean": {"documents": docs}})
 
     return doc_store
 
@@ -151,32 +139,28 @@ def format_time(seconds):
     return str(timedelta(seconds=round(seconds)))
 
 def main(args):
-    PATH_INDEX = os.path.join(args.knowledge_store_dir, "faiss_index")
-
     script_start = time.time()
-    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Script started at: {start_time}")
 
-    with open(args.target_data, "r", encoding="utf-8") as json_file:
-        target_examples = json.load(json_file)
+    with open(args.target_data, "r", encoding="utf-8") as fh:
+        target_examples = json.load(fh)
 
     if args.end == -1:
         args.end = len(target_examples)
-    
-    print(f"Total examples to process: {args.end - args.start}")
 
-    files_to_process = list(range(args.start, args.end))
+    files_to_process    = list(range(args.start, args.end))
     examples_to_process = [(idx, target_examples[idx]) for idx in files_to_process]
-    
-    num_workers = min(args.workers if args.workers > 0 else cpu_count(), len(files_to_process))
-    print(f"Using {num_workers} workers to process {len(files_to_process)} examples")
+    print(f"Total examples to process: {len(examples_to_process)}")
+
+    worker_init(args.knowledge_store_dir, MODEL_NAME)
 
     with Manager() as manager:
         counter = manager.Value('i', 0)
         lock = manager.Lock()
         args.total_examples = len(files_to_process)
         
-        result_queue = manager.Queue()
+        result_queue = mp.Queue()
         
         stop_event = Event()
         writer = Thread(
@@ -185,27 +169,18 @@ def main(args):
         )
         writer.start()
 
-        process_func = partial(
-            process_single_example,
-            args=args,
-            result_queue=result_queue,
-            counter=counter,
-            lock=lock
-        )
-
-        def worker_init(path_kb, model_name):
-            global DOC_STORE, EMBEDDER
-            DOC_STORE  = build_store(path_kb)
-            EMBEDDER   = SentenceTransformersTextEmbedder(model=model_name)
-            EMBEDDER.warm_up()
-                
-        with Pool(num_workers, initializer=worker_init, initargs=(args.knowledge_store_dir, MODEL_NAME)) as pool:
-            results = pool.starmap(process_func, examples_to_process)
+        results = []
+        for idx, example in examples_to_process:
+            ok = process_single_example(
+                idx, example, args,
+                result_queue, counter, lock
+            )
+            results.append(ok)
         
         stop_event.set()
         writer.join()
-        
-        successful = sum(1 for r in results if r)
+
+        successful = sum(results)
         print(f"\nSuccessfully processed {successful} out of {len(files_to_process)} examples")
         print(f"Results written to {args.json_output}")
         
@@ -223,7 +198,8 @@ def main(args):
             print(f"Processing speed: {successful / total_time:.2f} examples per second")
 
 if __name__ == "__main__":
-   
+    mp.set_start_method('spawn', force=True) #Handlelig GPU issue
+
     parser = argparse.ArgumentParser(
         description="Retrieve top-k sentences with FAISS in parallel"
     )
@@ -266,13 +242,6 @@ if __name__ == "__main__":
         type=int,
         default=-1,
         help="End index of the files to process.",
-    )
-    parser.add_argument(
-        "-w",
-        "--workers",
-        type=int,
-        default=0,
-        help="Number of worker processes (default: number of CPU cores)",
     )
 
     args = parser.parse_args()
