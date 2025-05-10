@@ -8,6 +8,8 @@ import nltk
 import pandas as pd
 from tqdm import tqdm
 from rank_bm25 import BM25Okapi
+from multiprocessing import Pool, cpu_count, Manager
+from functools import partial
 
 
 # Ensure NLTK data is available
@@ -42,21 +44,17 @@ def remove_duplicates(sentences, urls):
     return df['document_in_sentences'].tolist(), df['sentence_urls'].tolist()
 
 
-# Precompute BM25 components for faster retrieval
-def precompute_bm25(knowledge_store_dir, output_dir):
-    """Precompute and save tokenized documents and BM25 components for all files."""
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Get all knowledge files
-    knowledge_files = [f for f in os.listdir(knowledge_store_dir) if f.endswith('.json')]
-
-    for file_name in tqdm(knowledge_files, desc="Precomputing BM25 data"):
+# Process a single file for BM25 precomputation
+def process_bm25_file(file_name, knowledge_store_dir, output_dir, counter, lock):
+    try:
         file_id = file_name.split('.')[0]
         output_file = os.path.join(output_dir, f"{file_id}.pkl")
 
         # Skip if already processed
         if os.path.exists(output_file):
-            continue
+            with lock:
+                counter.value += 1
+            return True
 
         # Load sentences
         knowledge_file = os.path.join(knowledge_store_dir, file_name)
@@ -82,15 +80,61 @@ def precompute_bm25(knowledge_store_dir, output_dir):
                 'bm25_idf': bm25.idf
             }, f)
 
-    print(f"BM25 preprocessing completed. Data saved to {output_dir}")
+        with lock:
+            counter.value += 1
+            print(f"\rProcessed {counter.value} files", end="")
 
+        return True
+    except Exception as e:
+        print(f"\nError processing file {file_name}: {str(e)}")
+        return False
+
+
+# Precompute BM25 components with parallel processing
+def precompute_bm25(knowledge_store_dir, output_dir, num_workers):
+    """Precompute BM25 components in parallel."""
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Get all knowledge files
+    knowledge_files = [f for f in os.listdir(knowledge_store_dir) if f.endswith('.json')]
+    total_files = len(knowledge_files)
+    print(f"Found {total_files} files to process")
+
+    # Set up multiprocessing
+    with Manager() as manager:
+        counter = manager.Value('i', 0)
+        lock = manager.Lock()
+
+        # Process files in parallel
+        process_func = partial(
+            process_bm25_file,
+            knowledge_store_dir=knowledge_store_dir,
+            output_dir=output_dir,
+            counter=counter,
+            lock=lock
+        )
+
+        num_workers = min(num_workers if num_workers > 0 else cpu_count(), len(knowledge_files))
+        print(f"Using {num_workers} workers")
+
+        with Pool(num_workers) as pool:
+            results = list(tqdm(
+                pool.imap(process_func, knowledge_files),
+                total=len(knowledge_files),
+                desc="BM25 Preprocessing"
+            ))
+
+        successful = sum(1 for r in results if r)
+        print(f"\nSuccessfully processed {successful} out of {total_files} files")
 
 def main():
-    parser = argparse.ArgumentParser(description="Precompute data for BM25 and dense retrieval")
+    parser = argparse.ArgumentParser(description="Precompute data for BM25 retrieval")
     parser.add_argument("--knowledge_store_dir", type=str, required=True,
                         help="Directory containing knowledge store files")
     parser.add_argument("--bm25_output_dir", type=str, default="precomputed_bm25",
                         help="Output directory for precomputed BM25 data")
+    parser.add_argument("--workers", type=int, default=0,
+                       help="Number of worker processes (default: number of CPU cores)")
 
     args = parser.parse_args()
 
@@ -100,8 +144,8 @@ def main():
 
     # Precompute BM25 data
     start_time = time.time()
-    print(f"Starting BM25 preprocessing for files in {args.knowledge_store_dir}...")
-    precompute_bm25(args.knowledge_store_dir, args.bm25_output_dir)
+    print(f"Starting parallel BM25 preprocessing for files in {args.knowledge_store_dir}...")
+    precompute_bm25(args.knowledge_store_dir, args.bm25_output_dir, args.workers)
     print(f"BM25 preprocessing completed in {time.time() - start_time:.2f} seconds")
 
 if __name__ == "__main__":
