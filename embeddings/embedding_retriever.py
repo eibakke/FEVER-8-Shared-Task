@@ -25,7 +25,7 @@ from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
 from haystack import Document
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-STORE_PATH = "document_store.pkl"
+STORE_PATH = "embedding_data_store/document_store.pkl"
 
 def worker_init(path_kb, model_name):
     global DOC_STORE, EMBEDDER
