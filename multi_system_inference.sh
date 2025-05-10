@@ -283,16 +283,15 @@ mkdir -p "${CODE_PATH}/leaderboard_submission"
 if should_run_step 6 "$STEP6_OUTPUT"; then
     echo "Step 6: Preparing leaderboard submission..."
     python "${CODE_PATH}/prepare_leaderboard_submission.py" \
-        --filename "$STEP5_OUTPUT" \
-        --output_dir "${CODE_PATH}/leaderboard_submission" || exit 1
+        --filename "$STEP5_OUTPUT" || exit 1
 fi
 
 # Step 7: Evaluate results
 if should_run_step 7 ""; then  # No specific output file for evaluation
     echo "Step 7: Evaluating results..."
-    python "${CODE_PATH}/averitec_evaluate.py" \
+    python "${CODE_PATH}/local_averitec_evaluate.py" \
         --prediction_file "$STEP6_OUTPUT" \
-        --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
+        --label_file "${CODE_PATH}/leaderboard_submission/solution_dev.csv" || exit 1
 fi
 
 echo "All steps completed successfully!"
