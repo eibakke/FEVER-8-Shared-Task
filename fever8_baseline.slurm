@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=32
 #SBATCH --output=out_fever8_%j.log
 #SBATCH --error=out_fever8_%j.log
 

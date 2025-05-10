@@ -4,7 +4,6 @@ import os
 import time
 import numpy as np
 import pandas as pd
-import pickle
 import nltk
 from rank_bm25 import BM25Okapi
 from multiprocessing import Pool, cpu_count, Manager, Lock
@@ -13,15 +12,20 @@ import heapq
 from threading import Thread, Event
 import queue
 from datetime import datetime, timedelta
+from sentence_transformers import SentenceTransformer
+from sentence_transformers import util
+from sklearn.metrics.pairwise import cosine_similarity
+import torch
+import numpy as np
 
 
 def download_nltk_data(package_name, download_dir='nltk_data'):
     # Ensure the download directory exists
     os.makedirs(download_dir, exist_ok=True)
-    
+
     # Set NLTK data path
     nltk.data.path.append(download_dir)
-    
+
     try:
         # Try to find the resource
         nltk.data.find(f'tokenizers/{package_name}')
@@ -35,7 +39,7 @@ def download_nltk_data(package_name, download_dir='nltk_data'):
 
 def combine_all_sentences(knowledge_file):
     sentences, urls = [], []
-    
+
     with open(knowledge_file, "r", encoding="utf-8") as json_file:
         for i, line in enumerate(json_file):
             data = json.loads(line)
@@ -43,88 +47,65 @@ def combine_all_sentences(knowledge_file):
             urls.extend([data["url"] for _ in range(len(data["url2text"]))])
     return sentences, urls, i + 1
 
+
 def remove_duplicates(sentences, urls):
-    df = pd.DataFrame({"document_in_sentences":sentences, "sentence_urls":urls})
+    df = pd.DataFrame({"document_in_sentences": sentences, "sentence_urls": urls})
     df['sentences'] = df['document_in_sentences'].str.strip().str.lower()
     df = df.drop_duplicates(subset="sentences").reset_index()
     return df['document_in_sentences'].tolist(), df['sentence_urls'].tolist()
-                
-def retrieve_top_k_sentences(query, document, urls, top_k):
-    tokenized_docs = [nltk.word_tokenize(doc) for doc in document]
-    bm25 = BM25Okapi(tokenized_docs)
-    
-    scores = bm25.get_scores(nltk.word_tokenize(query))
-    top_k_idx = np.argsort(scores)[::-1][:top_k]
-
-    return [document[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
 
 
-def retrieve_top_k_sentences_bm25_preprocessed(query, precomputed_file, top_k):
-    """Retrieve top-k sentences using precomputed BM25 components."""
-    # Load precomputed data
-    with open(precomputed_file, 'rb') as f:
-        data = pickle.load(f)
+def retrieve_top_k_sentences(query, documents, urls, top_k, model):
+    # Convert query to embedding
+    query_embedding = model.encode(query, convert_to_tensor=True)
 
-    # Extract components
-    sentences = data['sentences']
-    urls = data['urls']
-    tokenized_docs = data['tokenized_docs']
+    # Process documents in batches to avoid memory issues
+    batch_size = 128
+    all_scores = []
 
-    # Recreate BM25 object with precomputed components
-    bm25 = BM25Okapi(tokenized_docs)
-    bm25.avgdl = data['bm25_avgdl']
-    bm25.corpus_size = data['bm25_corpus_size']
-    bm25.doc_freqs = data['bm25_doc_freqs']
-    bm25.doc_len = data['bm25_doc_len']
-    bm25.idf = data['bm25_idf']
+    for i in range(0, len(documents), batch_size):
+        batch_docs = documents[i:i + batch_size]
 
-    # Tokenize query
-    tokenized_query = nltk.word_tokenize(query.lower())
+        # Get embeddings for this batch
+        with torch.no_grad():
+            doc_embeddings = model.encode(batch_docs, convert_to_tensor=True)
 
-    # Get scores
-    scores = bm25.get_scores(tokenized_query)
+        # Compute cosine similarities
+        batch_scores = util.pytorch_cos_sim(query_embedding, doc_embeddings)[0]
+        batch_scores = batch_scores.cpu().numpy()
+
+        # Store scores
+        all_scores.extend(batch_scores)
 
     # Get top k indices
-    top_k_idx = np.argsort(scores)[::-1][:top_k]
+    all_scores = np.array(all_scores)
+    top_k_idx = np.argsort(all_scores)[::-1][:top_k]
 
-    # Return top k sentences and URLs
-    return [sentences[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
+    # Return top k documents and URLs
+    return [documents[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
 
-def process_single_example(idx, example, args, result_queue, counter, lock):
+
+def process_single_example(idx, example, args, result_queue, counter, lock, model):
     try:
         with lock:
             current_count = counter.value + 1
             counter.value = current_count
             print(f"\nProcessing claim {idx}... Progress: {current_count} / {args.total_examples}")
-        
-        start_time = time.time()
-        
-        query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
 
-        if args.retrieval_method == "bm25_precomputed":
-            precomputed_file = os.path.join(args.precomputed_bm25_dir, f"{idx}.pkl")
-            if os.path.exists(precomputed_file):
-                top_k_sentences, top_k_urls = retrieve_top_k_sentences_bm25_preprocessed(
-                    query, precomputed_file, args.top_k
-                )
-            else:
-                print(f"Warning: No precomputed BM25 data for claim {idx}, using on-the-fly processing")
-                document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
-                    os.path.join(args.knowledge_store_dir, f"{idx}.json")
-                )
-                document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
-                top_k_sentences, top_k_urls = retrieve_top_k_sentences(
-                    query, document_in_sentences, sentence_urls, args.top_k
-                )
-        else:  # Default to standard BM25
-            document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
-                os.path.join(args.knowledge_store_dir, f"{idx}.json")
-            )
-            print(f"Obtained {len(document_in_sentences)} sentences from {num_urls_this_claim} urls.")
-            document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
-            top_k_sentences, top_k_urls = retrieve_top_k_sentences(
-                query, document_in_sentences, sentence_urls, args.top_k
-            )
+        start_time = time.time()
+
+        document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
+            os.path.join(args.knowledge_store_dir, f"{idx}.json")
+        )
+
+        print(f"Obtained {len(document_in_sentences)} sentences from {num_urls_this_claim} urls.")
+
+        document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
+
+        query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
+        top_k_sentences, top_k_urls = retrieve_top_k_sentences(
+            query, document_in_sentences, sentence_urls, args.top_k, model
+        )
 
         processing_time = time.time() - start_time
         print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
@@ -150,27 +131,29 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
 def writer_thread(output_file, result_queue, total_examples, stop_event):
     next_index = 0
     pending_results = []
-    
+
     with open(output_file, "w", encoding="utf-8") as f:
         while not (stop_event.is_set() and result_queue.empty()):
             try:
                 idx, result = result_queue.get(timeout=1)
-                
+
                 if result is not None:
                     heapq.heappush(pending_results, (idx, result))
-                
+
                 while pending_results and pending_results[0][0] == next_index:
                     _, result_to_write = heapq.heappop(pending_results)
                     f.write(json.dumps(result_to_write, ensure_ascii=False) + "\n")
                     f.flush()
                     next_index += 1
-                    
+
             except queue.Empty:
                 continue
+
 
 def format_time(seconds):
     """Format time duration nicely."""
     return str(timedelta(seconds=round(seconds)))
+
 
 def main(args):
     script_start = time.time()
@@ -179,18 +162,23 @@ def main(args):
 
     download_nltk_data('punkt')
     download_nltk_data('punkt_tab')
-    
+
+    # Initialize the sentence transformer model
+    print(f"Loading sentence transformer model on {'GPU' if torch.cuda.is_available() else 'CPU'}...")
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2',
+                                device='cuda' if torch.cuda.is_available() else 'cpu')
+
     with open(args.target_data, "r", encoding="utf-8") as json_file:
         target_examples = json.load(json_file)
 
     if args.end == -1:
         args.end = len(target_examples)
-    
+
     print(f"Total examples to process: {args.end - args.start}")
 
     files_to_process = list(range(args.start, args.end))
     examples_to_process = [(idx, target_examples[idx]) for idx in files_to_process]
-    
+
     num_workers = min(args.workers if args.workers > 0 else cpu_count(), len(files_to_process))
     print(f"Using {num_workers} workers to process {len(files_to_process)} examples")
 
@@ -198,9 +186,9 @@ def main(args):
         counter = manager.Value('i', 0)
         lock = manager.Lock()
         args.total_examples = len(files_to_process)
-        
+
         result_queue = manager.Queue()
-        
+
         stop_event = Event()
         writer = Thread(
             target=writer_thread,
@@ -213,24 +201,25 @@ def main(args):
             args=args,
             result_queue=result_queue,
             counter=counter,
-            lock=lock
+            lock=lock,
+            model=model
         )
-        
+
         with Pool(num_workers) as pool:
             results = pool.starmap(process_func, examples_to_process)
-        
+
         stop_event.set()
         writer.join()
-        
+
         successful = sum(1 for r in results if r)
         print(f"\nSuccessfully processed {successful} out of {len(files_to_process)} examples")
         print(f"Results written to {args.json_output}")
-        
+
         # Calculate and display timing information
         total_time = time.time() - script_start
         avg_time = total_time / len(files_to_process)
         end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         print("\nTiming Summary:")
         print(f"Start time: {start_time}")
         print(f"End time: {end_time}")
@@ -238,6 +227,7 @@ def main(args):
         print(f"Average time per example: {avg_time:.2f} seconds")
         if successful > 0:
             print(f"Processing speed: {successful / total_time:.2f} examples per second")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -291,17 +281,10 @@ if __name__ == "__main__":
         help="Number of worker processes (default: number of CPU cores)",
     )
     parser.add_argument(
-        "--retrieval_method",
+        "--model",
         type=str,
-        choices=["bm25", "bm25_precomputed", "dense_precomputed"],
-        default="bm25",
-        help="Retrieval method to use"
-    )
-    parser.add_argument(
-        "--precomputed_bm25_dir",
-        type=str,
-        default="precomputed_bm25",
-        help="Directory containing precomputed BM25 data"
+        default="sentence-transformers/all-MiniLM-L6-v2",
+        help="Sentence transformer model to use for retrieval"
     )
 
     args = parser.parse_args()

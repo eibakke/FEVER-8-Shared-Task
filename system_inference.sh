@@ -147,6 +147,8 @@ if [ $RESUME_STEP -le 2 ]; then
     echo "Step 2: Running retrieval..."
     python "${CODE_PATH}/baseline/retrieval_optimized.py" \
         --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
+        --retrieval_method "bm25_precomputed" \
+        --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
         --top_k 5000 || exit 1
@@ -183,8 +185,7 @@ if [ $RESUME_STEP -le 6 ]; then
     echo "Step 6: Preparing leaderboard submission..."
     mkdir -p "${CODE_PATH}/leaderboard_submission"
     python "${CODE_PATH}/prepare_leaderboard_submission.py" \
-        --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
-        --output_dir "${CODE_PATH}/leaderboard_submission" || exit 1
+        --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"  || exit 1
 fi
 
 if [ $RESUME_STEP -le 7 ]; then
