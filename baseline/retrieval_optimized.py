@@ -57,6 +57,38 @@ def retrieve_top_k_sentences(query, document, urls, top_k):
 
     return [document[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
 
+
+def retrieve_top_k_sentences_bm25_preprocessed(query, precomputed_file, top_k):
+    """Retrieve top-k sentences using precomputed BM25 components."""
+    # Load precomputed data
+    with open(precomputed_file, 'rb') as f:
+        data = pickle.load(f)
+
+    # Extract components
+    sentences = data['sentences']
+    urls = data['urls']
+    tokenized_docs = data['tokenized_docs']
+
+    # Recreate BM25 object with precomputed components
+    bm25 = BM25Okapi(tokenized_docs)
+    bm25.avgdl = data['bm25_avgdl']
+    bm25.corpus_size = data['bm25_corpus_size']
+    bm25.doc_freqs = data['bm25_doc_freqs']
+    bm25.doc_len = data['bm25_doc_len']
+    bm25.idf = data['bm25_idf']
+
+    # Tokenize query
+    tokenized_query = nltk.word_tokenize(query.lower())
+
+    # Get scores
+    scores = bm25.get_scores(tokenized_query)
+
+    # Get top k indices
+    top_k_idx = np.argsort(scores)[::-1][:top_k]
+
+    # Return top k sentences and URLs
+    return [sentences[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
+
 def process_single_example(idx, example, args, result_queue, counter, lock):
     try:
         with lock:
@@ -66,19 +98,33 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
         
         start_time = time.time()
         
-        document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
-            os.path.join(args.knowledge_store_dir, f"{idx}.json")
-        )
-        
-        print(f"Obtained {len(document_in_sentences)} sentences from {num_urls_this_claim} urls.")
-        
-        document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
-        
         query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
-        top_k_sentences, top_k_urls = retrieve_top_k_sentences(
-            query, document_in_sentences, sentence_urls, args.top_k
-        )
-        
+
+        if args.retrieval_method == "bm25_precomputed":
+            precomputed_file = os.path.join(args.precomputed_bm25_dir, f"{idx}.pkl")
+            if os.path.exists(precomputed_file):
+                top_k_sentences, top_k_urls = retrieve_top_k_sentences_bm25_preprocessed(
+                    query, precomputed_file, args.top_k
+                )
+            else:
+                print(f"Warning: No precomputed BM25 data for claim {idx}, using on-the-fly processing")
+                document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
+                    os.path.join(args.knowledge_store_dir, f"{idx}.json")
+                )
+                document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
+                top_k_sentences, top_k_urls = retrieve_top_k_sentences(
+                    query, document_in_sentences, sentence_urls, args.top_k
+                )
+        else:  # Default to standard BM25
+            document_in_sentences, sentence_urls, num_urls_this_claim = combine_all_sentences(
+                os.path.join(args.knowledge_store_dir, f"{idx}.json")
+            )
+            print(f"Obtained {len(document_in_sentences)} sentences from {num_urls_this_claim} urls.")
+            document_in_sentences, sentence_urls = remove_duplicates(document_in_sentences, sentence_urls)
+            top_k_sentences, top_k_urls = retrieve_top_k_sentences(
+                query, document_in_sentences, sentence_urls, args.top_k
+            )
+
         processing_time = time.time() - start_time
         print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
 
@@ -91,13 +137,14 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
             ],
             "hypo_fc_docs": example['hypo_fc_docs']
         }
-        
+
         result_queue.put((idx, result))
         return True
     except Exception as e:
         print(f"Error processing example {idx}: {str(e)}")
         result_queue.put((idx, None))
         return False
+
 
 def writer_thread(output_file, result_queue, total_examples, stop_event):
     next_index = 0
@@ -241,6 +288,19 @@ if __name__ == "__main__":
         type=int,
         default=0,
         help="Number of worker processes (default: number of CPU cores)",
+    )
+    parser.add_argument(
+        "--retrieval_method",
+        type=str,
+        choices=["bm25", "bm25_precomputed", "dense_precomputed"],
+        default="bm25",
+        help="Retrieval method to use"
+    )
+    parser.add_argument(
+        "--precomputed_bm25_dir",
+        type=str,
+        default="precomputed_bm25",
+        help="Directory containing precomputed BM25 data"
     )
 
     args = parser.parse_args()
