@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
-#SBATCH --gpus=1
-#SBATCH --cpus-per-task=8
+#SBATCH --gpus=2
+#SBATCH --cpus-per-task=32
 #SBATCH --output=out_multi_perspective_%j.log
 #SBATCH --error=out_multi_perspective_%j.log
 
