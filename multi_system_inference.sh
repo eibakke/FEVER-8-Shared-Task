@@ -289,7 +289,7 @@ fi
 # Step 7: Evaluate results
 if should_run_step 7 ""; then  # No specific output file for evaluation
     echo "Step 7: Evaluating results..."
-    python "${CODE_PATH}/local_averitec_evaluate.py" \
+    python "${CODE_PATH}/averitec_evaluate.py" \
         --prediction_file "$STEP6_OUTPUT" \
         --label_file "${CODE_PATH}/leaderboard_submission/solution_dev.csv" || exit 1
 fi
