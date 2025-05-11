@@ -1,19 +1,16 @@
+#IMPORTS
 import argparse
 import json
 import os
 import time
 import numpy as np
-from functools import partial
 import heapq
-from threading import Thread, Event
 import queue
 from datetime import datetime, timedelta
 from pathlib import Path
+import torch
+from threading import Thread, Event
 
-import multiprocessing as mp
-from multiprocessing import Pool, Manager, Lock, cpu_count
-
-##
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
@@ -23,22 +20,17 @@ from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
 from haystack import Document
-import json, os
-##
 
+#Defining global variables
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-
-def worker_init(path_kb, model_name):
-    global DOC_STORE, EMBEDDER
-    DOC_STORE  = build_store(path_kb)
-    EMBEDDER   = SentenceTransformersTextEmbedder(model=model_name)
-    EMBEDDER.warm_up()
-
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def build_store(path_kb: str):
-   
+    """Function that takes in path to folder with the knowledge base.
+    Returns an InMemoryDocumentStore item. This element is also stored in a file in the datastore"""
     doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
 
+    #Setting up pipeline (same as seminar 11, https://github.uio.no/in5550/2025/blob/main/labs/11/rag_example.ipynb)
     indexing = Pipeline()
     indexing.add_component("clean",   DocumentCleaner())
     indexing.add_component("split",   DocumentSplitter(split_by="sentence", split_length=1))
@@ -50,46 +42,45 @@ def build_store(path_kb: str):
     indexing.connect("split",  "embed")
     indexing.connect("embed",  "writer")
 
-    #Indexing
-    for fn in os.listdir(path_kb):
-        docs = []
-        with open(os.path.join(path_kb, fn), encoding="utf-8") as fh:
-            for line in fh:
-                data = json.loads(line)
-                for url, txt in zip(data["url"], data["url2text"]):
-                    docs.append(Document(content=txt, meta={"url": url}))
-        indexing.run({"clean": {"documents": docs}})
+    #Due to issues with OOM, we run in batches
+    batch_size=100 #FIRST TEST 
+    batch = []
+    for root, _, files in os.walk(path_kb):
+        for fn in files:
+            if not fn.endswith((".jsonl", ".json")):
+                continue
+            with open(os.path.join(root, fn), encoding="utf-8") as fh:
+                for line in fh:
+                    data = json.loads(line)
+                    url  = data["url"]
+                    for txt in data["url2text"]:
+                        batch.append(Document(content=txt, meta={"url": url}))
+                        if len(batch) == batch_size:
+                            indexing.run({"clean": {"documents": batch}})
+                            batch.clear()
+    if batch:
+        indexing.run({"clean": {"documents": batch}})
 
+    #Storing object in file
+    Path("data_store/miniLM_cosine.pkl").parent.mkdir(parents=True, exist_ok=True)
+    doc_store.save("data_store/miniLM_cosine.pkl")
+ 
     return doc_store
 
-def init_retriever(doc_store, top_k):
-    embedder  = SentenceTransformersTextEmbedder(model=MODEL_NAME)
-    retriever = InMemoryEmbeddingRetriever(document_store=doc_store, top_k=top_k)
-    return embedder, retriever
+def build_or_load(path_kb: str, store_fp="data_store/miniLM_cosine.pkl"):
+    """Function checks if there is a datastore element in the given folder.
+    If yes this is imported. If not, we call build store function"""
+    if Path(store_fp).exists():
+        return InMemoryDocumentStore.load(store_fp)
+    return build_store(path_kb)
 
 def retrieve_top_k_sentences(query: str, top_k: int):
     q_vec = EMBEDDER.run(query)["embedding"]
-    #docs  = DOC_STORE.query_by_embedding(q_vec, top_k=top_k)["documents"]
-    #return [d.content for d in docs], [d.meta["url"] for d in docs]
-    docs  = DOC_STORE.query_by_embedding(q_vec, top_k=top_k)["documents"]
-    seen=set(); uniq=[]
-    for d in docs:
-        if d.content not in seen:
-            seen.add(d.content)
-            uniq.append(d)
-        if len(uniq) == top_k:
-            break
-    return [d.content for d in uniq], [d.meta["url"] for d in uniq]
+    docs  = SEARCHER.topk(q_vec, top_k)
+    return [d.content for d in docs], [d.meta["url"] for d in docs]
 
-
-
-def process_single_example(idx, example, args, result_queue, counter, lock):
+def process_single_example(idx, example, args, result_queue, counter):
     try:
-        with lock:
-            current_count = counter.value + 1
-            counter.value = current_count
-            print(f"\nProcessing claim {idx}... Progress: {current_count} / {args.total_examples}")
-        
         start_time = time.time()
         
         query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
@@ -139,6 +130,23 @@ def format_time(seconds):
     """Format time duration nicely."""
     return str(timedelta(seconds=round(seconds)))
 
+class GPUSearcher:
+    def __init__(self, doc_store, device="cuda"):
+        embs  = np.stack([d.embedding for d in doc_store._embedding_id_to_embedding.values()])
+        self.doc_ids = np.fromiter(doc_store._embedding_id_to_doc_id.values(), dtype=np.int64)
+        self.matrix  = torch.from_numpy(embs).to(device)
+        self.matrix  = torch.nn.functional.normalize(self.matrix, dim=1)
+        self.device  = device
+
+    @torch.inference_mode()
+    def topk(self, query_vec: np.ndarray, k: int):
+        q = torch.from_numpy(query_vec).to(self.device)
+        q = torch.nn.functional.normalize(q, dim=0)
+        sims = self.matrix @ q                    # (N,)
+        vals, idx = torch.topk(sims, k)
+        doc_ids   = self.doc_ids[idx.cpu()]
+        return [DOC_STORE.get_document_by_id(i) for i in doc_ids]
+
 def main(args):
     script_start = time.time()
     start_time   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -154,52 +162,45 @@ def main(args):
     examples_to_process = [(idx, target_examples[idx]) for idx in files_to_process]
     print(f"Total examples to process: {len(examples_to_process)}")
 
-    worker_init(args.knowledge_store_dir, MODEL_NAME)
+    args.total_examples = len(examples_to_process)
 
-    with Manager() as manager:
-        counter = manager.Value('i', 0)
-        lock = manager.Lock()
-        args.total_examples = len(files_to_process)
-        
-        result_queue = mp.Queue()
-        
-        stop_event = Event()
-        writer = Thread(
-            target=writer_thread,
-            args=(args.json_output, result_queue, args.start, stop_event)
-        )
-        writer.start()
+    counter = 0  
+    lock = None                       
+    result_queue = queue.Queue()
+    stop_event = Event()
+    writer = Thread(
+        target=writer_thread,
+        args=(args.json_output, result_queue, args.start, stop_event)
+    )
+    writer.start()
 
-        results = []
-        for idx, example in examples_to_process:
-            ok = process_single_example(
-                idx, example, args,
-                result_queue, counter, lock
-            )
-            results.append(ok)
-        
-        stop_event.set()
-        writer.join()
+    results = []
+    for idx, example in examples_to_process:
+        ok = process_single_example(idx, example, args, result_queue, counter)
+        counter += 1                         
+        results.append(ok)
 
-        successful = sum(results)
-        print(f"\nSuccessfully processed {successful} out of {len(files_to_process)} examples")
-        print(f"Results written to {args.json_output}")
+    stop_event.set()
+    writer.join()
+
+    successful = sum(results)
+    print(f"\nSuccessfully processed {successful} out of {len(files_to_process)} examples")
+    print(f"Results written to {args.json_output}")
         
-        # Calculate and display timing information
-        total_time = time.time() - script_start
-        avg_time = total_time / len(files_to_process)
-        end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        print("\nTiming Summary:")
-        print(f"Start time: {start_time}")
-        print(f"End time: {end_time}")
-        print(f"Total runtime: {format_time(total_time)} (HH:MM:SS)")
-        print(f"Average time per example: {avg_time:.2f} seconds")
-        if successful > 0:
-            print(f"Processing speed: {successful / total_time:.2f} examples per second")
+    # Calculate and display timing information
+    total_time = time.time() - script_start
+    avg_time = total_time / len(files_to_process)
+    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    print("\nTiming Summary:")
+    print(f"Start time: {start_time}")
+    print(f"End time: {end_time}")
+    print(f"Total runtime: {format_time(total_time)} (HH:MM:SS)")
+    print(f"Average time per example: {avg_time:.2f} seconds")
+    if successful > 0:
+        print(f"Processing speed: {successful / total_time:.2f} examples per second")
 
 if __name__ == "__main__":
-    mp.set_start_method('spawn', force=True) #Handlelig GPU issue
 
     parser = argparse.ArgumentParser(
         description="Retrieve top-k sentences with FAISS in parallel"
@@ -226,7 +227,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--top_k",
-        default=5000,
+        default=5, #5000,
         type=int,
         help="How many documents should we pick out with dense retriever",
     )
@@ -246,5 +247,11 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    
+    global DOC_STORE, SEARCHER, EMBEDDER          # declare globals
+    DOC_STORE  = build_or_load(args.knowledge_store_dir)
+    SEARCHER   = GPUSearcher(DOC_STORE, device=DEVICE)
+    EMBEDDER   = SentenceTransformersTextEmbedder(model=MODEL_NAME, device=DEVICE)
+    EMBEDDER.warm_up()
     
     main(args)
