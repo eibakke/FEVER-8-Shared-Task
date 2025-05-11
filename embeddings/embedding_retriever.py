@@ -10,6 +10,8 @@ import queue
 import pickle
 from datetime import datetime, timedelta
 from pathlib import Path
+import sys
+import traceback
 
 import multiprocessing as mp
 from multiprocessing import Pool, Manager, Lock, cpu_count
@@ -25,13 +27,29 @@ from haystack import Document
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 STORE_DIR = "/fp/projects01/ec403/IN5550_students/EivindogNora/FEVER-8-Shared-Task/embedding_data_store"
+DEBUG = True  # Enable detailed debugging
+
+
+def debug_print(message):
+    """Print debug messages with timestamp"""
+    if DEBUG:
+        print(f"[DEBUG {datetime.now().strftime('%H:%M:%S')}] {message}", flush=True)
+
 
 def worker_init(model_name):
     """Initialize only the embedder in the worker"""
     global EMBEDDER
-    EMBEDDER = SentenceTransformersTextEmbedder(model=model_name)
-    EMBEDDER.warm_up()
-    print("Worker initialized with embedder")
+    try:
+        debug_print(f"Initializing worker with model {model_name}...")
+        EMBEDDER = SentenceTransformersTextEmbedder(model=model_name)
+        debug_print("Warming up embedder...")
+        EMBEDDER.warm_up()
+        print("Worker initialized with embedder")
+        return True
+    except Exception as e:
+        print(f"Error initializing worker: {str(e)}")
+        traceback.print_exc()
+        return False
 
 
 def build_claim_store(knowledge_file, claim_id):
@@ -40,13 +58,19 @@ def build_claim_store(knowledge_file, claim_id):
 
     # Return existing store if available
     if os.path.exists(store_path):
-        print(f"Loading existing document store for claim {claim_id}")
-        with open(store_path, "rb") as f:
-            return pickle.load(f)
+        debug_print(f"Loading existing document store for claim {claim_id}")
+        try:
+            with open(store_path, "rb") as f:
+                return pickle.load(f)
+        except Exception as e:
+            debug_print(f"Error loading stored document store: {str(e)}")
+            # If loading fails, continue to build a new one
+            pass
 
-    print(f"Building document store for claim {claim_id}")
+    debug_print(f"Building document store for claim {claim_id}")
     doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
 
+    debug_print("Creating indexing pipeline...")
     indexing = Pipeline()
     indexing.add_component("clean", DocumentCleaner())
     indexing.add_component("split", DocumentSplitter(split_by="sentence", split_length=1))
@@ -65,39 +89,77 @@ def build_claim_store(knowledge_file, claim_id):
 
     # Process only the specific knowledge file for this claim
     try:
+        if not os.path.exists(knowledge_file):
+            debug_print(f"Knowledge file not found: {knowledge_file}")
+            return None
+
+        debug_print(f"Reading knowledge file: {knowledge_file}")
+
+        # Get file size
+        file_size = os.path.getsize(knowledge_file)
+        debug_print(f"Knowledge file size: {file_size / (1024 * 1024):.2f} MB")
+
         docs = []
         with open(knowledge_file, encoding="utf-8") as fh:
+            line_count = 0
             for line in fh:
-                data = json.loads(line)
-                for url, txt in zip([data["url"]] * len(data["url2text"]), data["url2text"]):
-                    total_docs += 1
+                line_count += 1
+                if line_count % 10 == 0:
+                    debug_print(f"Processed {line_count} lines, collected {total_docs} documents")
 
-                    # Normalize content for deduplication
-                    content_key = txt.strip().lower()
+                try:
+                    data = json.loads(line)
+                    # Check data structure
+                    if "url" not in data or "url2text" not in data:
+                        debug_print(f"Invalid data structure in line {line_count}")
+                        continue
 
-                    # Only add unique content
-                    if content_key not in all_content_seen:
-                        all_content_seen.add(content_key)
-                        docs.append(Document(content=txt, meta={"url": url}))
-                        unique_docs += 1
+                    # Normalize URL handling
+                    url_value = data["url"]
+                    url_list = [url_value] * len(data["url2text"]) if isinstance(url_value, str) else data["url"]
 
-        # Index documents if we have any
-        if docs:
-            indexing.run({"clean": {"documents": docs}})
+                    for url, txt in zip(url_list, data["url2text"]):
+                        total_docs += 1
+
+                        # Normalize content for deduplication
+                        content_key = txt.strip().lower()
+
+                        # Only add unique content
+                        if content_key not in all_content_seen:
+                            all_content_seen.add(content_key)
+                            docs.append(Document(content=txt, meta={"url": url}))
+                            unique_docs += 1
+
+                except json.JSONDecodeError:
+                    debug_print(f"Invalid JSON in line {line_count}")
+                except Exception as e:
+                    debug_print(f"Error processing line {line_count}: {str(e)}")
+
+        debug_print(f"Document collection complete. Indexing {len(docs)} documents...")
+
+        # Index documents in smaller batches to avoid memory issues
+        batch_size = 500
+        for i in range(0, len(docs), batch_size):
+            batch = docs[i:i + batch_size]
+            debug_print(f"Indexing batch {i // batch_size + 1}/{len(docs) // batch_size + 1} ({len(batch)} documents)")
+            indexing.run({"clean": {"documents": batch}})
+            debug_print(f"Batch {i // batch_size + 1} indexed")
 
         print(f"Claim {claim_id}: {unique_docs} unique documents from {total_docs} total")
 
         # Save document store
+        debug_print(f"Saving document store to {store_path}")
         os.makedirs(os.path.dirname(store_path), exist_ok=True)
         with open(store_path, "wb") as f:
             pickle.dump(doc_store, f)
+        debug_print("Document store saved successfully")
 
         return doc_store
 
     except Exception as e:
         print(f"Error building document store for claim {claim_id}: {str(e)}")
+        traceback.print_exc()
         return None
-
 
 
 def retrieve_top_k_sentences(claim_id, query, top_k, knowledge_store_dir):
@@ -105,19 +167,30 @@ def retrieve_top_k_sentences(claim_id, query, top_k, knowledge_store_dir):
     try:
         # Get the knowledge file path for this claim
         knowledge_file = os.path.join(knowledge_store_dir, f"{claim_id}.json")
+        debug_print(f"Knowledge file path: {knowledge_file}")
+
+        if not os.path.exists(knowledge_file):
+            print(f"ERROR: Knowledge file not found: {knowledge_file}")
+            return [], []
 
         # Build/load document store for this claim
+        debug_print("Building/loading document store...")
         doc_store = build_claim_store(knowledge_file, claim_id)
         if doc_store is None:
+            print(f"ERROR: Failed to build document store for claim {claim_id}")
             return [], []
 
         # Get query embedding and retrieve documents
+        debug_print(f"Embedding query: {query[:100]}...")
         q_vec = EMBEDDER.run(query)["embedding"]
+        debug_print("Querying document store...")
         docs = doc_store.query_by_embedding(q_vec, top_k=top_k)["documents"]
+        debug_print(f"Retrieved {len(docs)} documents")
 
         return [d.content for d in docs], [d.meta["url"] for d in docs]
     except Exception as e:
         print(f"Error in retrieve_top_k_sentences for claim {claim_id}: {str(e)}")
+        traceback.print_exc()
         return [], []
 
 
@@ -129,15 +202,20 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
             print(f"\nProcessing claim {idx}... Progress: {current_count} / {args.total_examples}")
 
         start_time = time.time()
+        debug_print(f"Claim {idx}: Starting processing")
+
         query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
+        debug_print(f"Claim {idx}: Query constructed")
 
         # Retrieve using claim-specific document store
+        debug_print(f"Claim {idx}: Calling retrieve_top_k_sentences")
         sents, urls = retrieve_top_k_sentences(
             idx, query, args.top_k, args.knowledge_store_dir
         )
+        debug_print(f"Claim {idx}: Retrieved {len(sents)} sentences")
 
         processing_time = time.time() - start_time
-        print(f"Claim {idx}: Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
+        print(f"Claim {idx}: Top {len(sents)}/{args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
 
         result = {
             "claim_id": idx,
@@ -146,12 +224,30 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
             "hypo_fc_docs": example['hypo_fc_docs']
         }
 
+        debug_print(f"Claim {idx}: Putting result in queue")
         result_queue.put((idx, result))
+        debug_print(f"Claim {idx}: Processing complete")
         return True
     except Exception as e:
         print(f"Error processing example {idx}: {str(e)}")
+        traceback.print_exc()
         result_queue.put((idx, None))
         return False
+
+
+def process_examples_in_main_process(examples_to_process, args, result_queue, counter, lock):
+    """Process examples in the main process to avoid pool issues"""
+    debug_print("Processing examples in main process...")
+    results = []
+
+    # Initialize in main process
+    worker_init(MODEL_NAME)
+
+    for idx, example in examples_to_process:
+        result = process_single_example(idx, example, args, result_queue, counter, lock)
+        results.append(result)
+
+    return results
 
 
 def writer_thread(output_file, result_queue, next_index, stop_event):
@@ -161,18 +257,25 @@ def writer_thread(output_file, result_queue, next_index, stop_event):
         while not (stop_event.is_set() and result_queue.empty()):
             try:
                 idx, result = result_queue.get(timeout=1)
+                debug_print(f"Writer: Got result for claim {idx}")
 
                 if result is not None:
                     heapq.heappush(pending_results, (idx, result))
+                    debug_print(f"Writer: Added result for claim {idx} to heap")
 
                 while pending_results and pending_results[0][0] == next_index:
                     _, result_to_write = heapq.heappop(pending_results)
                     f.write(json.dumps(result_to_write, ensure_ascii=False) + "\n")
                     f.flush()
+                    debug_print(f"Writer: Wrote result for claim {next_index}")
                     next_index += 1
 
             except queue.Empty:
-                continue
+                # No need to print this, it will spam the logs
+                pass
+            except Exception as e:
+                print(f"Error in writer thread: {str(e)}")
+                traceback.print_exc()
 
 
 def format_time(seconds):
@@ -186,8 +289,10 @@ def main(args):
     print(f"Script started at: {start_time}")
 
     # Create store directory
+    debug_print(f"Creating store directory: {STORE_DIR}")
     os.makedirs(STORE_DIR, exist_ok=True)
 
+    debug_print(f"Loading target data from: {args.target_data}")
     with open(args.target_data, "r", encoding="utf-8") as fh:
         target_examples = json.load(fh)
 
@@ -206,29 +311,38 @@ def main(args):
         result_queue = manager.Queue()
 
         stop_event = Event()
+        debug_print("Starting writer thread...")
         writer = Thread(
             target=writer_thread,
             args=(args.json_output, result_queue, args.start, stop_event)
         )
         writer.start()
 
-        # Initialize worker with just the embedder
-        worker_init(MODEL_NAME)
+        # Process in main process for small batches or debugging
+        if len(examples_to_process) <= 5 or DEBUG:
+            debug_print("Processing in main process due to small batch size or debug mode")
+            results = process_examples_in_main_process(
+                examples_to_process, args, result_queue, counter, lock
+            )
+        else:
+            # Process examples in parallel for larger batches
+            debug_print(f"Processing in parallel with {args.workers} workers")
+            worker_init(MODEL_NAME)  # Initialize in main process first
 
-        # Process examples in parallel
-        process_func = partial(
-            process_single_example,
-            args=args,
-            result_queue=result_queue,
-            counter=counter,
-            lock=lock
-        )
+            process_func = partial(
+                process_single_example,
+                args=args,
+                result_queue=result_queue,
+                counter=counter,
+                lock=lock
+            )
 
-        with Pool(processes=args.workers,
-                  initializer=worker_init,
-                  initargs=(MODEL_NAME,)) as pool:
-            results = pool.starmap(process_func, examples_to_process)
+            with Pool(processes=args.workers,
+                      initializer=worker_init,
+                      initargs=(MODEL_NAME,)) as pool:
+                results = pool.starmap(process_func, examples_to_process)
 
+        debug_print("All processing complete, stopping writer thread")
         stop_event.set()
         writer.join()
 
@@ -303,7 +417,15 @@ if __name__ == "__main__":
         default=cpu_count(),
         help="Number of worker processes"
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable detailed debug output"
+    )
 
     args = parser.parse_args()
-    
+
+    # Set debug mode based on argument
+    DEBUG = args.debug
+
     main(args)
