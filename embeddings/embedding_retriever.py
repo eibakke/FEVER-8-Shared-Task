@@ -54,14 +54,14 @@ def worker_init(model_name):
 
 def build_claim_store(knowledge_file, claim_id):
     """Build document store for a specific claim"""
-    store_dir = os.path.join(STORE_DIR, f"store_{claim_id}")
+    store_path = os.path.join(STORE_DIR, MODEL_NAME, f"store_{claim_id}.json")
 
     # Return existing store if available
-    if os.path.exists(store_dir) and os.path.isdir(store_dir):
+    if os.path.exists(store_path):
         debug_print(f"Loading existing document store for claim {claim_id}")
         try:
             doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
-            doc_store.load_from_disk(store_dir)
+            doc_store.load_from_disk(store_path)
             debug_print(f"Successfully loaded document store with {doc_store.count_documents()} documents")
             return doc_store
         except Exception as e:
@@ -154,9 +154,9 @@ def build_claim_store(knowledge_file, claim_id):
         print(f"Claim {claim_id}: {unique_docs} unique documents from {total_docs} total")
 
         # Save document store using Haystack's to_disk method
-        debug_print(f"Saving document store to {store_dir}")
-        os.makedirs(store_dir, exist_ok=True)
-        doc_store.save_to_disk(store_dir)
+        debug_print(f"Saving document store to {store_path}")
+        os.makedirs(store_path, exist_ok=True)
+        doc_store.save_to_disk(store_path)
         debug_print("Document store saved successfully")
 
         return doc_store
