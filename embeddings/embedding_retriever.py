@@ -59,8 +59,7 @@ def build_claim_store(knowledge_file, claim_id):
     if os.path.exists(store_path):
         debug_print(f"Loading existing document store for claim {claim_id}")
         try:
-            doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
-            doc_store.load_from_disk(store_path)
+            doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine").load_from_disk(store_path)
             debug_print(f"Successfully loaded document store with {doc_store.count_documents()} documents")
             return doc_store
         except Exception as e:
@@ -199,6 +198,7 @@ def retrieve_top_k_sentences(claim_id, query, top_k, knowledge_store_dir):
         text_embedder = SentenceTransformersTextEmbedder(model=MODEL_NAME)
 
         # Create the retriever component
+        # Is there a faster approximate embedding retriever that I can use with haystack? I fear that the regular inmemoryembedding retriever is too slow...
         retriever = InMemoryEmbeddingRetriever(
             document_store=doc_store,
             top_k=top_k
