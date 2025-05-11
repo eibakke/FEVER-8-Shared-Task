@@ -155,7 +155,8 @@ def build_claim_store(knowledge_file, claim_id):
 
         # Save document store using Haystack's to_disk method
         debug_print(f"Saving document store to {store_path}")
-        os.makedirs(store_path, exist_ok=True)
+        store_dir = os.path.dirname(store_path)
+        os.makedirs(store_dir, exist_ok=True)
         doc_store.save_to_disk(store_path)
         debug_print("Document store saved successfully")
 
