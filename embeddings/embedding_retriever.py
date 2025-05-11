@@ -17,13 +17,12 @@ import multiprocessing as mp
 from multiprocessing import Pool, Manager, Lock, cpu_count
 
 from haystack.document_stores.in_memory import InMemoryDocumentStore
-from haystack import Pipeline
+from haystack import Document, Pipeline
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
-from haystack.components.embedders import SentenceTransformersDocumentEmbedder
+from haystack.components.embedders import SentenceTransformersDocumentEmbedder, SentenceTransformersTextEmbedder
 from haystack.components.writers import DocumentWriter
 from haystack.document_stores.types import DuplicatePolicy
-from haystack.components.embedders import SentenceTransformersTextEmbedder
-from haystack import Document
+from haystack.components.retrievers import InMemoryEmbeddingRetriever
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 STORE_DIR = "/fp/projects01/ec403/IN5550_students/EivindogNora/FEVER-8-Shared-Task/embedding_data_store"
@@ -193,24 +192,38 @@ def retrieve_top_k_sentences(claim_id, query, top_k, knowledge_store_dir):
             print(f"ERROR: Document store is empty for claim {claim_id}")
             return [], []
 
-        # Get query embedding and retrieve documents
-        debug_print(f"Embedding query: {query[:100]}...")
-        q_vec = EMBEDDER.run(query)["embedding"]
-        debug_print(f"Query embedding shape: {np.array(q_vec).shape}")
+        # Create a retriever
+        debug_print("Creating retriever pipeline...")
 
-        debug_print("Querying document store...")
-        results = doc_store.query_by_embedding(q_vec, top_k=top_k)
-        docs = results["documents"]
+        # Text embedder for the query
+        text_embedder = SentenceTransformersTextEmbedder(model=MODEL_NAME)
 
-        # Print score information for debugging
-        if len(docs) > 0:
-            scores = results.get("scores", [])
-            if scores:
-                debug_print(f"Top score: {scores[0]}, Bottom score: {scores[-1]}")
+        # Create the retriever component
+        retriever = InMemoryEmbeddingRetriever(
+            document_store=doc_store,
+            top_k=top_k
+        )
 
-        debug_print(f"Retrieved {len(docs)} documents")
+        # Create the pipeline
+        pipe = Pipeline()
+        pipe.add_component("text_embedder", text_embedder)
+        pipe.add_component("retriever", retriever)
+        pipe.connect("text_embedder.embedding", "retriever.query_embedding")
 
-        return [d.content for d in docs], [d.meta["url"] for d in docs]
+        # Run retrieval
+        debug_print(f"Running retrieval for query: {query[:100]}...")
+        results = pipe.run({"text_embedder": {"text": query}})
+
+        # Get documents from retriever
+        documents = results["retriever"]["documents"]
+
+        debug_print(f"Retrieved {len(documents)} documents")
+
+        # Extract content and URLs
+        contents = [doc.content for doc in documents]
+        urls = [doc.meta.get("url", "") for doc in documents]
+
+        return contents, urls
     except Exception as e:
         print(f"Error in retrieve_top_k_sentences for claim {claim_id}: {str(e)}")
         traceback.print_exc()
