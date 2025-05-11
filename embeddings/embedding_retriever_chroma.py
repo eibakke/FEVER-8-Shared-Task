@@ -29,35 +29,44 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 EMBEDDING_DIM = 384
 
-def build_store(path_kb: str, db_dir: str = "data_store/chroma_db"):
+def _noop_embed(texts):
+    # return zero vectors – they’ll never be queried
+    return np.zeros((len(texts), EMBEDDING_DIM), dtype=np.float32)
+
+def build_store(path_kb, db_dir = "data_store/chroma_db", collection = "miniLM_cosine"):
     #https://afolabi-lagunju.medium.com/building-a-q-a-chatbot-on-your-documents-with-haystack-2-x-488738eb5206
     #reopen from disk if it exists
-    if os.path.exists(os.path.join(db_dir, 'chroma.sqlite3')):
+
+    if Path(db_dir, "chroma_new.sqlite3").exists():
         return ChromaDocumentStore(
-        persist_path=db_dir,
-        embedding_function='default',
-        collection_name="miniLM_cosine", 
+            persist_path=db_dir,
+            collection_name=collection,
+            embedding_function="default"    
         )
-    
-    #else create new 
+     
     doc_store = ChromaDocumentStore(
         persist_path=db_dir,
-        collection_name="miniLM_cosine",
-        embedding_function='default'
-    )
+        collection_name=collection,
+        embedding_function="default")   
 
     indexing = Pipeline()
     indexing.add_component("clean",  DocumentCleaner())
     indexing.add_component("split",  DocumentSplitter(split_by="sentence", split_length=1))
     indexing.add_component("embed",  SentenceTransformersDocumentEmbedder(
-                                        model=MODEL_NAME, device=None, meta_fields_to_embed=["url"]))
+                                        model=MODEL_NAME,
+                                        device="cuda",
+                                        batch_size=512,
+                                        precision="float16",
+                                        progress_bar=False,
+                                        meta_fields_to_embed=["url"]))
     indexing.add_component("writer", DocumentWriter(doc_store, policy=DuplicatePolicy.OVERWRITE))
     indexing.connect("clean", "split")
     indexing.connect("split", "embed")
     indexing.connect("embed", "writer")
 
-    # ❸ stream in batches
-    batch, BATCH_SIZE = [], 5_000
+    
+    batch=[]
+    BATCH_SIZE=5000
     for root, _, files in os.walk(path_kb):
         for fn in files:
             if not fn.endswith((".jsonl", ".json")):
@@ -239,8 +248,18 @@ if __name__ == "__main__":
     
     global DOC_STORE, SEARCHER, EMBEDDER      
     DOC_STORE = build_store(args.knowledge_store_dir)
-    EMBEDDER= SentenceTransformersTextEmbedder(model=MODEL_NAME, device=None) #None=Default, CUDA if available
-    RETRIEVER = ChromaEmbeddingRetriever(document_store=DOC_STORE, top_k=args.top_k)
-    EMBEDDER.warm_up()
+    EMBEDDER = SentenceTransformersTextEmbedder(
+    model=MODEL_NAME,
+    device="cuda",       
+    batch_size=512,       
+    precision="float16",
+    progress_bar=False
+    )
+    EMBEDDER.warm_up()  
+    RETRIEVER = ChromaEmbeddingRetriever(
+        document_store=DOC_STORE,
+        query_embedder=EMBEDDER,
+        top_k=args.top_k
+    )
 
     main(args)
