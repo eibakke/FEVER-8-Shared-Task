@@ -54,14 +54,16 @@ def worker_init(model_name):
 
 def build_claim_store(knowledge_file, claim_id):
     """Build document store for a specific claim"""
-    store_path = os.path.join(STORE_DIR, f"store_{claim_id}.pkl")
+    store_dir = os.path.join(STORE_DIR, f"store_{claim_id}")
 
     # Return existing store if available
-    if os.path.exists(store_path):
+    if os.path.exists(store_dir) and os.path.isdir(store_dir):
         debug_print(f"Loading existing document store for claim {claim_id}")
         try:
-            with open(store_path, "rb") as f:
-                return pickle.load(f)
+            doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
+            doc_store.from_disk(store_dir)
+            debug_print(f"Successfully loaded document store with {doc_store.count_documents()} documents")
+            return doc_store
         except Exception as e:
             debug_print(f"Error loading stored document store: {str(e)}")
             # If loading fails, continue to build a new one
@@ -125,7 +127,7 @@ def build_claim_store(knowledge_file, claim_id):
                         content_key = txt.strip().lower()
 
                         # Only add unique content
-                        if content_key not in all_content_seen:
+                        if content_key not in all_content_seen and txt.strip():  # Skip empty content
                             all_content_seen.add(content_key)
                             docs.append(Document(content=txt, meta={"url": url}))
                             unique_docs += 1
@@ -137,6 +139,10 @@ def build_claim_store(knowledge_file, claim_id):
 
         debug_print(f"Document collection complete. Indexing {len(docs)} documents...")
 
+        if len(docs) == 0:
+            debug_print("No documents collected, skipping indexing")
+            return None
+
         # Index documents in smaller batches to avoid memory issues
         batch_size = 500
         for i in range(0, len(docs), batch_size):
@@ -147,11 +153,10 @@ def build_claim_store(knowledge_file, claim_id):
 
         print(f"Claim {claim_id}: {unique_docs} unique documents from {total_docs} total")
 
-        # Save document store
-        debug_print(f"Saving document store to {store_path}")
-        os.makedirs(os.path.dirname(store_path), exist_ok=True)
-        with open(store_path, "wb") as f:
-            pickle.dump(doc_store, f)
+        # Save document store using Haystack's to_disk method
+        debug_print(f"Saving document store to {store_dir}")
+        os.makedirs(store_dir, exist_ok=True)
+        doc_store.to_disk(store_dir)
         debug_print("Document store saved successfully")
 
         return doc_store
@@ -180,11 +185,28 @@ def retrieve_top_k_sentences(claim_id, query, top_k, knowledge_store_dir):
             print(f"ERROR: Failed to build document store for claim {claim_id}")
             return [], []
 
+        # Verify document store has documents
+        doc_count = doc_store.count_documents()
+        debug_print(f"Document store contains {doc_count} documents")
+        if doc_count == 0:
+            print(f"ERROR: Document store is empty for claim {claim_id}")
+            return [], []
+
         # Get query embedding and retrieve documents
         debug_print(f"Embedding query: {query[:100]}...")
         q_vec = EMBEDDER.run(query)["embedding"]
+        debug_print(f"Query embedding shape: {np.array(q_vec).shape}")
+
         debug_print("Querying document store...")
-        docs = doc_store.query_by_embedding(q_vec, top_k=top_k)["documents"]
+        results = doc_store.query_by_embedding(q_vec, top_k=top_k)
+        docs = results["documents"]
+
+        # Print score information for debugging
+        if len(docs) > 0:
+            scores = results.get("scores", [])
+            if scores:
+                debug_print(f"Top score: {scores[0]}, Bottom score: {scores[-1]}")
+
         debug_print(f"Retrieved {len(docs)} documents")
 
         return [d.content for d in docs], [d.meta["url"] for d in docs]
