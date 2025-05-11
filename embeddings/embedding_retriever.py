@@ -25,7 +25,7 @@ from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.retrievers import InMemoryEmbeddingRetriever
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-STORE_DIR = "/fp/projects01/ec403/IN5550_students/EivindogNora/FEVER-8-Shared-Task/embedding_data_store"
+STORE_DIR = "/cluster/work/projects/ec403/EivindogNora/embedding_data_store"
 DEBUG = True  # Enable detailed debugging
 
 
