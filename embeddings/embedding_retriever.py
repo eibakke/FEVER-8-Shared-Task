@@ -61,7 +61,7 @@ def build_claim_store(knowledge_file, claim_id):
         debug_print(f"Loading existing document store for claim {claim_id}")
         try:
             doc_store = InMemoryDocumentStore(embedding_similarity_function="cosine")
-            doc_store.from_disk(store_dir)
+            doc_store.load_from_disk(store_dir)
             debug_print(f"Successfully loaded document store with {doc_store.count_documents()} documents")
             return doc_store
         except Exception as e:
@@ -156,7 +156,7 @@ def build_claim_store(knowledge_file, claim_id):
         # Save document store using Haystack's to_disk method
         debug_print(f"Saving document store to {store_dir}")
         os.makedirs(store_dir, exist_ok=True)
-        doc_store.to_disk(store_dir)
+        doc_store.save_to_disk(store_dir)
         debug_print("Document store saved successfully")
 
         return doc_store
