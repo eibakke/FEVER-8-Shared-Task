@@ -165,7 +165,7 @@ fi
 if [ $RESUME_STEP -le 4 ]; then
     echo "Step 4: Generating questions..."
     python "${CODE_PATH}/baseline/question_generation_optimized.py" \
-        --reference_corpus "${DATA_STORE}/averitec/train.json" \
+        --reference_corpus "${DATA_STORE}/averitec/train_reference.json" \
         --top_k_target_knowledge "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
         --output_questions "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa.json" \
         --model "$MODEL_PATH" \
