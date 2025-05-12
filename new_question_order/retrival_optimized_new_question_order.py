@@ -140,7 +140,7 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
                 {"sentence": sent, "url": url}
                 for sent, url in zip(top_k_sentences, top_k_urls)
             ],
-            "hypo_passage": example['hyde_docs']
+            "hypo_passage": hyde_docs
         }
 
         result_queue.put((idx, result))
