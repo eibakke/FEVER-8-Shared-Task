@@ -227,7 +227,7 @@ for fc_type in "${FC_TYPES[@]}"; do
             --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
             --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
             --json_output "$STEP3A_OUTPUT" \
-            --top_k 5000 || exit 1
+            --top_k 500 || exit 1
     fi
 
     # Step 3b: Run reranking for this type
@@ -292,7 +292,7 @@ if should_run_step 7 ""; then  # No specific output file for evaluation
     echo "Step 7: Evaluating results..."
     python "${CODE_PATH}/averitec_evaluate.py" \
         --prediction_file "$STEP6_OUTPUT" \
-        --label_file "${DATA_STORE}/averitec/${SPLIT}.json" || exit 1
+        --label_file "${CODE_PATH}/leaderboard_submission/solution_${SPLIT}.csv" || exit 1
 fi
 
 echo "All steps completed successfully!"

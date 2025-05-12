@@ -151,7 +151,7 @@ if [ $RESUME_STEP -le 2 ]; then
         --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
-        --top_k 5000 || exit 1
+        --top_k 500 || exit 1
 fi
 
 if [ $RESUME_STEP -le 3 ]; then
@@ -190,7 +190,7 @@ fi
 
 if [ $RESUME_STEP -le 7 ]; then
     echo "Step 7: Evaluating results..."
-    python "${CODE_PATH}/local_averitec_evaluate.py" \
+    python "${CODE_PATH}/averitec_evaluate.py" \
         --prediction_file "${CODE_PATH}/leaderboard_submission/submission.csv" \
         --label_file "${CODE_PATH}/leaderboard_submission/solution_dev.csv" || exit 1
 fi
