@@ -227,7 +227,7 @@ for fc_type in "${FC_TYPES[@]}"; do
             --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
             --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
             --json_output "$STEP3A_OUTPUT" \
-            --top_k 5000 || exit 1
+            --top_k 500 || exit 1
     fi
 
     # Step 3b: Run reranking for this type
@@ -237,7 +237,7 @@ for fc_type in "${FC_TYPES[@]}"; do
         python "${CODE_PATH}/baseline/reranking_optimized.py" \
             --target_data "$STEP3A_OUTPUT" \
             --json_output "$STEP3B_OUTPUT" \
-            --retrieved_top_k 5000 --batch_size $RERANKING_BATCH_SIZE || exit 1
+            --retrieved_top_k 500 --batch_size $RERANKING_BATCH_SIZE || exit 1
     fi
 
     # Step 3c: Generate questions for this type
