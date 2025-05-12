@@ -58,7 +58,6 @@ def retrieve_top_k_sentences(query, document, urls, top_k):
 
     return [document[i] for i in top_k_idx], [urls[i] for i in top_k_idx]
 
-
 def retrieve_top_k_sentences_bm25_preprocessed(query, precomputed_file, top_k):
     """Retrieve top-k sentences using precomputed BM25 components."""
     # Load precomputed data
@@ -141,7 +140,7 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
                 {"sentence": sent, "url": url}
                 for sent, url in zip(top_k_sentences, top_k_urls)
             ],
-            "hypo_fc_docs": example['hypo_fc_docs']
+            "hypo_passage": example['hypo_docs']
         }
 
         result_queue.put((idx, result))
