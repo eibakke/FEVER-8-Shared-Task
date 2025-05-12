@@ -245,7 +245,7 @@ for fc_type in "${FC_TYPES[@]}"; do
     if should_run_step "3c-${fc_type}" "$STEP3C_OUTPUT"; then
         echo "Step 3c: Generating questions for ${fc_type} fact-checking..."
         python "${CODE_PATH}/baseline/question_generation_optimized.py" \
-            --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
+            --reference_corpus "${DATA_STORE}/averitec/train.json" \
             --top_k_target_knowledge "$STEP3B_OUTPUT" \
             --output_questions "$STEP3C_OUTPUT" \
             --model "$MODEL_PATH" \
