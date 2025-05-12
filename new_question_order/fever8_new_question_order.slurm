@@ -63,7 +63,7 @@ conda info --envs
 echo "Files in current directory:"
 ls -la
 
-echo "Running the baseline system with arguments: $@"
+echo "Running the changed order system with arguments: $@"
 # Use the full path to run_system.sh from the submission directory
 bash "${SUBMIT_DIR}/run_system_new_question_order.sh" "$@"
 
