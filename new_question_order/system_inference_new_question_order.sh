@@ -164,7 +164,7 @@ fi
 
 if [ $RESUME_STEP -le 4 ]; then
     echo "Step 4: Generating questions..."
-    python "${CODE_PATH}/baseline/question_generation_optimized.py" \
+    python "${CODE_PATH}/../baseline/question_generation_optimized.py" \
         --reference_corpus "${DATA_STORE}/averitec/${SPLIT}.json" \
         --top_k_target_knowledge "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k.json" \
         --output_questions "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa.json" \
@@ -174,7 +174,7 @@ fi
 
 if [ $RESUME_STEP -le 5 ]; then
     echo "Step 5: Running veracity prediction..."
-    python "${CODE_PATH}/baseline/veracity_prediction_optimized.py" \
+    python "${CODE_PATH}/../baseline/veracity_prediction_optimized.py" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa.json" \
         --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
         --batch_size $VERACITY_BATCH_SIZE \
