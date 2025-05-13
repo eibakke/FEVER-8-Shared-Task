@@ -187,7 +187,6 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
                 output['evidence'] = evidence
                 output['pred_label'] = label or "Not Enough Evidence"  # fallback if no label found
                 output['llm_output'] = output_text
-                print("Output:", output)
                 output_json.append(output)
 
             batch_time = time.time() - start_time
