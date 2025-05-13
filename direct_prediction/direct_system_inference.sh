@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the configuration file to get shared paths
-source $(dirname "$0")/config.sh
+source $(dirname "$0")/../config.sh
 
 # Default settings (can be overridden via command-line arguments)
 SYSTEM_NAME="direct_prediction"
