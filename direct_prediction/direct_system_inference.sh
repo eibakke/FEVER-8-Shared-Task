@@ -78,7 +78,7 @@ echo "Batch size: ${BATCH_SIZE}"
 
 # Load config file with tokens
 if [ -f ".env" ]; then
-    source .env
+    source "${CODE_PATH}/../.env"
 else
     echo "Error: .env file not found"
     echo "Please create it with: echo 'export HUGGING_FACE_HUB_TOKEN=your_token' > .env"
