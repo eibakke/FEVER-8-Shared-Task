@@ -161,7 +161,10 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
             results = self.llm.generate(prompts, sampling_params=self.sampling_params)
             output_texts = self.parse_response(results)
 
-            for example, output_text in zip(batch, output_texts):
+            output_json = []
+            for output_text in output_texts:
+                output = {}
+
                 label = self.get_label_from_output(output_text)
                 evidence = self.extract_qa_pairs(output_text)
 
@@ -180,12 +183,13 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
                         }
                     ]
 
-                example['evidence'] = evidence
-                example['pred_label'] = label or "Not Enough Evidence"  # fallback if no label found
-                example['llm_output'] = output_text
+                output['evidence'] = evidence
+                output['pred_label'] = label or "Not Enough Evidence"  # fallback if no label found
+                output['llm_output'] = output_text
+                output_json.append(output)
 
             batch_time = time.time() - start_time
-            return batch, batch_time
+            return output_json, batch_time
         except Exception as e:
             print(f"Error processing batch: {str(e)}")
             return batch, time.time() - start_time
