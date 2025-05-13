@@ -65,9 +65,6 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
     ORIG_SPLIT=$SPLIT
     SPLIT="${SPLIT}_small_${NUM_EXAMPLES}"
 
-    # Create the necessary directories
-    mkdir -p "${KNOWLEDGE_STORE}/${SPLIT}"
-
     # Check if jq is installed
     if ! command -v jq &> /dev/null; then
         echo "Error: jq is not installed. Please install it first."
@@ -82,13 +79,7 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
         echo "Using existing small dataset at ${DATA_STORE}/averitec/${SPLIT}.json"
     fi
 
-    # Copy knowledge store if it doesn't exist yet
-    if [ ! -d "${KNOWLEDGE_STORE}/${SPLIT}" ] || [ -z "$(ls -A ${KNOWLEDGE_STORE}/${SPLIT})" ]; then
-        echo "Copying knowledge store from ${ORIG_SPLIT} to ${SPLIT}..."
-        cp -r "${KNOWLEDGE_STORE}/${ORIG_SPLIT}/." "${KNOWLEDGE_STORE}/${SPLIT}/"
-    else
-        echo "Using existing knowledge store at ${KNOWLEDGE_STORE}/${SPLIT}"
-    fi
+    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
@@ -113,7 +104,7 @@ else
     RERANKING_BATCH_SIZE=128
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
-    mkdir -p "${KNOWLEDGE_STORE}/${SPLIT}"
+    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${SPLIT}"
 fi
 
 echo "Starting multi-perspective system inference for ${SYSTEM_NAME} on ${SPLIT} split..."
@@ -227,7 +218,7 @@ for fc_type in "${FC_TYPES[@]}"; do
             --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
             --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
             --json_output "$STEP3A_OUTPUT" \
-            --top_k 500 || exit 1
+            --top_k 5000 || exit 1
     fi
 
     # Step 3b: Run reranking for this type

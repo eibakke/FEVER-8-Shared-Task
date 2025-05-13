@@ -50,9 +50,6 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
     ORIG_SPLIT=$SPLIT
     SPLIT="${SPLIT}_small_${NUM_EXAMPLES}"
 
-    # Create the necessary directories
-    mkdir -p "${KNOWLEDGE_STORE}/${SPLIT}"
-
     # Check if jq is installed
     if ! command -v jq &> /dev/null; then
         echo "Error: jq is not installed. Please install it first."
@@ -67,13 +64,8 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
         echo "Using existing small dataset at ${DATA_STORE}/averitec/${SPLIT}.json"
     fi
 
-    # Copy knowledge store if it doesn't exist yet
-    if [ ! -d "${KNOWLEDGE_STORE}/${SPLIT}" ] || [ -z "$(ls -A ${KNOWLEDGE_STORE}/${SPLIT})" ]; then
-        echo "Copying knowledge store from ${ORIG_SPLIT} to ${SPLIT}..."
-        cp -r "${KNOWLEDGE_STORE}/${ORIG_SPLIT}/." "${KNOWLEDGE_STORE}/${SPLIT}/"
-    else
-        echo "Using existing knowledge store at ${KNOWLEDGE_STORE}/${SPLIT}"
-    fi
+    # Store the original knowledge store path for use in commands
+    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
@@ -98,7 +90,7 @@ else
     RERANKING_BATCH_SIZE=64  # Reduced from 128 to 64
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
-    mkdir -p "${KNOWLEDGE_STORE}/${SPLIT}"
+    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${SPLIT}"
 fi
 
 echo "Starting system inference for ${SYSTEM_NAME} on ${SPLIT} split..."
@@ -151,7 +143,7 @@ if [ $RESUME_STEP -le 2 ]; then
         --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
-        --top_k 500 || exit 1
+        --top_k 5000 || exit 1
 fi
 
 if [ $RESUME_STEP -le 3 ]; then
