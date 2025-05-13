@@ -162,7 +162,7 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
             output_texts = self.parse_response(results)
 
             output_json = []
-            for output_text in output_texts:
+            for batch, output_text in zip(batches, output_texts):
                 output = {}
 
                 label = self.get_label_from_output(output_text)
@@ -182,7 +182,8 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
                             "url": "direct_prediction"
                         }
                     ]
-
+                output['claim_id'] = batch["claim_id"]
+                output['claim'] = batch["claim"]
                 output['evidence'] = evidence
                 output['pred_label'] = label or "Not Enough Evidence"  # fallback if no label found
                 output['llm_output'] = output_text
