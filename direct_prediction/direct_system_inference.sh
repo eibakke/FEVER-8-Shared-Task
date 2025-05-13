@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source the configuration file to get shared paths
+source $(dirname "$0")/config.sh
+
 # Default settings (can be overridden via command-line arguments)
 SYSTEM_NAME="direct_prediction"
 SPLIT="dev"
@@ -34,13 +37,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Setup data paths
-DATA_STORE="${BASE_DIR}/data_store"
-export HF_HOME="${BASE_DIR}/huggingface_cache"
+# Setup code paths (local)
+CODE_PATH=$(dirname "$0")
 
-# Create necessary directories
-mkdir -p "${DATA_STORE}/${SYSTEM_NAME}"
-mkdir -p "${HF_HOME}"
 
 # If num_examples is set, create a smaller dataset
 if [ $NUM_EXAMPLES -gt 0 ]; then
@@ -96,7 +95,7 @@ export HUGGING_FACE_HUB_TOKEN
 
 # Run direct prediction
 echo "Running direct veracity prediction..."
-python direct_prediction.py \
+python "${CODE_PATH}/direct_prediction.py" \
     --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
     --output_file "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" \
     --batch_size $BATCH_SIZE \
@@ -104,13 +103,13 @@ python direct_prediction.py \
 
 # Run evaluation
 echo "Preparing leaderboard submission..."
-python prepare_leaderboard_submission.py \
+python "${CODE_PATH}/../prepare_leaderboard_submission.py" \
     --filename "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json" || exit 1
 
 echo "Evaluating results..."
-python averitec_evaluate.py \
-    --prediction_file "leaderboard_submission/submission.csv" \
-    --label_file "leaderboard_submission/solution_dev.csv" || exit 1
+python "${CODE_PATH}/../averitec_evaluate.py" \
+    --prediction_file "${CODE_PATH}/../leaderboard_submission/submission.csv" \
+    --label_file "${CODE_PATH}/../leaderboard_submission/solution_${SPLIT}.csv" || exit 1
 
 echo "All steps completed successfully!"
 echo "Results saved to: ${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"
