@@ -162,7 +162,7 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
             output_texts = self.parse_response(results)
 
             output_json = []
-            for batch, output_text in zip(batches, output_texts):
+            for b, output_text in zip(batch, output_texts):
                 output = {}
 
                 label = self.get_label_from_output(output_text)
@@ -182,8 +182,8 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
                             "url": "direct_prediction"
                         }
                     ]
-                output['claim_id'] = batch["claim_id"]
-                output['claim'] = batch["claim"]
+                output['claim_id'] = b["claim_id"]
+                output['claim'] = b["claim"]
                 output['evidence'] = evidence
                 output['pred_label'] = label or "Not Enough Evidence"  # fallback if no label found
                 output['llm_output'] = output_text
@@ -194,7 +194,7 @@ verdict: [Your final verdict - one of 'Supported', 'Refuted', 'Not Enough Eviden
             return output_json, batch_time
         except Exception as e:
             print(f"Error processing batch: {str(e)}")
-            return batch, time.time() - start_time
+            return [], time.time() - start_time
 
 
 def format_time(seconds: float) -> str:
