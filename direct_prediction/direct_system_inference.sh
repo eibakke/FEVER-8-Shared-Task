@@ -77,7 +77,7 @@ echo "Data store: ${DATA_STORE}"
 echo "Batch size: ${BATCH_SIZE}"
 
 # Load config file with tokens
-if [ -f ".env" ]; then
+if [ -f "${CODE_PATH}/../.env" ]; then
     source "${CODE_PATH}/../.env"
 else
     echo "Error: .env file not found"
