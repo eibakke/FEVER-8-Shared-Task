@@ -65,7 +65,7 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
     fi
 
     # Store the original knowledge store path for use in commands
-    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
+    KNOWLEDGE_STORE_PATH="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
@@ -90,12 +90,12 @@ else
     RERANKING_BATCH_SIZE=64  # Reduced from 128 to 64
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
-    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${SPLIT}"
+    KNOWLEDGE_STORE_PATH="${KNOWLEDGE_STORE}/${SPLIT}"
 fi
 
 echo "Starting system inference for ${SYSTEM_NAME} on ${SPLIT} split..."
 echo "Data store: ${DATA_STORE}"
-echo "Knowledge store: ${KNOWLEDGE_STORE}"
+echo "Knowledge store: ${KNOWLEDGE_STORE_PATH}"
 echo "Code path: ${CODE_PATH}"
 echo "Batch sizes - Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
 echo "Starting from step ${RESUME_STEP}"
@@ -138,9 +138,9 @@ fi
 if [ $RESUME_STEP -le 2 ]; then
     echo "Step 2: Running retrieval..."
     python "${CODE_PATH}/baseline/retrieval_optimized.py" \
-        --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
+        --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
         --retrieval_method "bm25_precomputed" \
-        --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
+        --precomputed_bm25_dir "${KNOWLEDGE_STORE_PATH}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
         --top_k 5000 || exit 1

@@ -79,7 +79,7 @@ if [ $NUM_EXAMPLES -gt 0 ]; then
         echo "Using existing small dataset at ${DATA_STORE}/averitec/${SPLIT}.json"
     fi
 
-    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
+    KNOWLEDGE_STORE_PATH="${KNOWLEDGE_STORE}/${ORIG_SPLIT}"
 
     # Adjust batch sizes based on dataset size
     if [ $NUM_EXAMPLES -le 10 ]; then
@@ -104,12 +104,12 @@ else
     RERANKING_BATCH_SIZE=128
     QUESTION_GEN_BATCH_SIZE=4
     VERACITY_BATCH_SIZE=8
-    KNOWLEDGE_STORE="${KNOWLEDGE_STORE}/${SPLIT}"
+    KNOWLEDGE_STORE_PATH="${KNOWLEDGE_STORE}/${SPLIT}"
 fi
 
 echo "Starting multi-perspective system inference for ${SYSTEM_NAME} on ${SPLIT} split..."
 echo "Data store: ${DATA_STORE}"
-echo "Knowledge store: ${KNOWLEDGE_STORE}"
+echo "Knowledge store: ${KNOWLEDGE_STORE_PATH}"
 echo "Code path: ${CODE_PATH}"
 echo "Batch sizes - Reranking: ${RERANKING_BATCH_SIZE}, Question Gen: ${QUESTION_GEN_BATCH_SIZE}, Veracity: ${VERACITY_BATCH_SIZE}"
 echo "Starting from step ${START_FROM}"
@@ -215,7 +215,7 @@ for fc_type in "${FC_TYPES[@]}"; do
     if should_run_step "3a-${fc_type}" "$STEP3A_OUTPUT"; then
         echo "Step 3a: Running retrieval for ${fc_type} fact-checking..."
         python "${CODE_PATH}/baseline/retrieval_optimized.py" \
-            --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
+            --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
             --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
             --json_output "$STEP3A_OUTPUT" \
             --top_k 5000 || exit 1
