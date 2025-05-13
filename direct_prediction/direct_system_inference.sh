@@ -108,8 +108,8 @@ python "${CODE_PATH}/../prepare_leaderboard_submission.py" \
 
 echo "Evaluating results..."
 python "${CODE_PATH}/../averitec_evaluate.py" \
-    --prediction_file "${CODE_PATH}/../leaderboard_submission/submission.csv" \
-    --label_file "${CODE_PATH}/../leaderboard_submission/solution_${SPLIT}.csv" || exit 1
+    --prediction_file "${CODE_PATH}/leaderboard_submission/submission.csv" \
+    --label_file "${CODE_PATH}/leaderboard_submission/solution_${SPLIT}.csv" || exit 1
 
 echo "All steps completed successfully!"
 echo "Results saved to: ${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"
