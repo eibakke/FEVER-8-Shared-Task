@@ -10,12 +10,12 @@
 #SBATCH --output=out_compare_pred_%j.log
 #SBATCH --error=out_compare_pred_%j.log
 
-source $(dirname "$0")/../config.sh
+source $(pwd)/../config.sh
 
 # Default settings
 DIRECT_SYSTEM="direct_prediction"
 BASELINE_SYSTEM="baseline"
-SPLIT="dev"
+SPLIT="train_train"
 OUTPUT_DIR="comparison_results"
 USE_GPU=1
 BATCH_SIZE=64
@@ -28,7 +28,6 @@ OUTPUT_DIR=${SUBMIT_DIR}
 
 # Path to shared project directory
 SHARED_PROJECT_PATH="/fp/projects01/ec403/IN5550_students/EivindogNora/FEVER-8-Shared-Task"
-
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
