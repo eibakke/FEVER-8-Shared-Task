@@ -611,6 +611,26 @@ def write_metrics_to_file(results, output_path):
             f.write(f"| {label} | {direct_count} | {baseline_count} | {abs_shift:.2%} | {rel_shift_str} |\n")
 
 
+def make_json_serializable(obj):
+    """Convert NumPy types to native Python types to make JSON serializable."""
+    if isinstance(obj, (np.integer, np.int64, np.int32)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.ndarray,)):
+        return obj.tolist()
+    elif isinstance(obj, (set, frozenset)):
+        return list(obj)
+    elif isinstance(obj, dict):
+        return {make_json_serializable(key): make_json_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_serializable(item) for item in obj]
+    elif hasattr(obj, 'isoformat'):  # For datetime objects
+        return obj.isoformat()
+    else:
+        return obj
+
+
 def main():
     parser = argparse.ArgumentParser(description='Compare direct and knowledge-based prediction systems')
     parser.add_argument('--direct_file', required=True, help='Path to direct prediction results JSON')
@@ -682,7 +702,8 @@ def main():
 
     # Save raw results
     with open(os.path.join(args.output_dir, 'raw_metrics.json'), 'w', encoding='utf-8') as f:
-        json.dump(results, f, indent=2)
+        serializable_results = make_json_serializable(results)
+        json.dump(serializable_results, f, indent=2)
 
     # Print execution time
     end_time = time.time()
