@@ -44,10 +44,10 @@ done
 # Setup code paths (local)
 CODE_PATH=$(dirname "$0")
 
+ORIG_SPLIT=$SPLIT
 # If num_examples is set, create a smaller dataset
 if [ $NUM_EXAMPLES -gt 0 ]; then
     echo "Processing smaller dataset with $NUM_EXAMPLES examples..."
-    ORIG_SPLIT=$SPLIT
     SPLIT="${SPLIT}_small_${NUM_EXAMPLES}"
 
     # Check if jq is installed
@@ -183,8 +183,8 @@ fi
 if [ $RESUME_STEP -le 7 ]; then
     echo "Step 7: Evaluating results..."
     python "${CODE_PATH}/../averitec_evaluate.py" \
-        --prediction_file "${CODE_PATH}/../leaderboard_submission/submission.csv" \
-        --label_file "${CODE_PATH}/../leaderboard_submission/solution_${SPLIT}.csv" || exit 1
+        --prediction_file "${CODE_PATH}/leaderboard_submission/submission.csv" \
+        --label_file "${CODE_PATH}/leaderboard_submission/solution_${ORIG_SPLIT}.csv" || exit 1
 fi
 
 echo "All steps completed successfully!"
