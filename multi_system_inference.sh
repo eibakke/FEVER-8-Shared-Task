@@ -216,6 +216,8 @@ for fc_type in "${FC_TYPES[@]}"; do
         echo "Step 3a: Running retrieval for ${fc_type} fact-checking..."
         python "${CODE_PATH}/baseline/retrieval_optimized.py" \
             --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
+            --retrieval_method "bm25_precomputed" \
+            --precomputed_bm25_dir "${KNOWLEDGE_STORE_PATH}/precomputed_bm25" \
             --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc_${fc_type}.json" \
             --json_output "$STEP3A_OUTPUT" \
             --top_k 5000 || exit 1

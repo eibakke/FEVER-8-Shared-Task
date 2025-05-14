@@ -140,7 +140,7 @@ if [ $RESUME_STEP -le 2 ]; then
     python "${CODE_PATH}/retrival_optimized_new_question_order.py" \
         --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
         --retrieval_method "bm25_precomputed" \
-        --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
+        --precomputed_bm25_dir "${KNOWLEDGE_STORE_PATH}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k.json" \
         --top_k 5000 || exit 1
