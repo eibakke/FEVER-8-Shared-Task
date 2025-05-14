@@ -82,11 +82,25 @@ def calculate_agreement_metrics(df):
 
     # Agreement by direct label
     agreement_by_direct = df.groupby('direct_label')['agreement'].agg(['count', 'mean'])
-    results['agreement_by_direct_label'] = agreement_by_direct.to_dict()
+    # Convert to a properly structured dictionary
+    agreement_by_direct_dict = {}
+    for label in agreement_by_direct.index:
+        agreement_by_direct_dict[label] = {
+            'count': int(agreement_by_direct.loc[label, 'count']),
+            'mean': float(agreement_by_direct.loc[label, 'mean'])
+        }
+    results['agreement_by_direct_label'] = agreement_by_direct_dict
 
     # Agreement by baseline label
     agreement_by_baseline = df.groupby('baseline_label')['agreement'].agg(['count', 'mean'])
-    results['agreement_by_baseline_label'] = agreement_by_baseline.to_dict()
+    # Convert to a properly structured dictionary
+    agreement_by_baseline_dict = {}
+    for label in agreement_by_baseline.index:
+        agreement_by_baseline_dict[label] = {
+            'count': int(agreement_by_baseline.loc[label, 'count']),
+            'mean': float(agreement_by_baseline.loc[label, 'mean'])
+        }
+    results['agreement_by_baseline_label'] = agreement_by_baseline_dict
 
     # Transition matrix (from direct to baseline)
     labels = sorted(list(set(df['direct_label'].unique()) | set(df['baseline_label'].unique())))
@@ -96,7 +110,15 @@ def calculate_agreement_metrics(df):
         normalize='index'
     ).round(3)
 
-    results['transition_matrix'] = transition_matrix.to_dict()
+    # Convert transition matrix to proper dictionary structure
+    transition_dict = {}
+    for label in transition_matrix.index:
+        transition_dict[label] = {}
+        for col in transition_matrix.columns:
+            if col in transition_matrix.columns:
+                transition_dict[label][col] = float(transition_matrix.loc[label, col])
+
+    results['transition_matrix'] = transition_dict
 
     # Count specific transitions (for major label changes)
     transitions = df.groupby(['direct_label', 'baseline_label']).size().reset_index(name='count')
