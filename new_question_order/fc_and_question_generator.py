@@ -1,3 +1,5 @@
+import re
+
 from vllm import LLM, SamplingParams
 import torch, json, argparse, time
 from datetime import datetime, timedelta
@@ -85,6 +87,9 @@ class FCQGenerator:
                 if text.endswith("```"):
                     text = text[:-3].strip()
 
+                # This regex replaces unescaped control characters with their proper JSON escapes
+                text = re.sub(r'[\x00-\x1F\x7F-\x9F]', lambda m: f"\\u{ord(m.group(0)):04x}", text)
+
                 obj = json.loads(text)
 
                 # Handle different question formats
@@ -96,7 +101,7 @@ class FCQGenerator:
                 assert "passage" in obj
             except Exception as e:
                 print(f"Failed to parse output: {e}")
-                print(f"Text: {cand.text}")
+                print(f"Text: {cand.text[:100]}...") # Print just the beginning to avoid huge outputs
                 continue
 
             obj["_logprob"] = self._score_completion(cand)
