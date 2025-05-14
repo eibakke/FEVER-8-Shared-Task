@@ -1,7 +1,5 @@
-import re
-
 from vllm import LLM, SamplingParams
-import torch, json, argparse, time
+import torch, json, argparse, time, re
 from datetime import datetime, timedelta
 
 
@@ -52,66 +50,81 @@ class FCQGenerator:
     def _score_completion(self, comp):
         return sum(step[next(iter(step))].logprob for step in comp.logprobs)
 
-    def _pick_best(self, request_output):
-        best_item, best_score = None, -float("inf")
+    def _extract_content(self, text):
+        """Extract passage and questions using pattern matching instead of JSON parsing"""
+        # Clean up text first
+        text = text.strip()
+        if text.startswith("```json"):
+            text = text[7:].strip()
+        if text.endswith("```"):
+            text = text[:-3].strip()
 
-        for cand in request_output.outputs:
-            try:
-                parsed = json.loads(cand.text.strip())
-                assert isinstance(parsed, dict) and \
-                       "passage" in parsed
-            except (json.JSONDecodeError, AssertionError):
-                continue
+        result = {"passage": "", "questions": []}
 
-            score = self._score_completion(cand)
-            if score > best_score:
-                best_item, best_score = parsed, score
+        # Try to extract passage using patterns
+        passage_match = re.search(r'"passage"\s*:\s*"([^"]*(?:"[^"]*"[^"]*)*)"', text, re.DOTALL)
+        if passage_match:
+            result["passage"] = passage_match.group(1).replace('\\"', '"')
+        else:
+            # Fallback: try to find passage between curly braces
+            passage_start = text.find('"passage"')
+            if passage_start > -1:
+                passage_start = text.find(':', passage_start) + 1
+                quote_start = text.find('"', passage_start)
+                if quote_start > -1:
+                    quote_end = text.find('",', quote_start + 1)
+                    if quote_end == -1:  # Last property in JSON
+                        quote_end = text.find('"', quote_start + 1)
+                    if quote_end > -1:
+                        result["passage"] = text[quote_start + 1:quote_end]
 
-        # Fallback - keep raw text
-        if best_item is None:
-            best_item = {"passage": request_output.outputs[0].text.strip(),
-                         "questions": []}
+        # Try to extract questions using pattern matching
+        questions = []
 
-        return best_item
+        # First try to extract from "questions" array
+        questions_match = re.search(r'"questions"\s*:\s*\[(.*?)\]', text, re.DOTALL)
+        if questions_match:
+            questions_str = questions_match.group(1)
+            # Extract each question string
+            question_matches = re.findall(r'"([^"]*(?:"[^"]*"[^"]*)*)"', questions_str)
+            questions.extend(question_matches)
 
+        # Also check for single "question" field
+        question_match = re.search(r'"question"\s*:\s*"([^"]*(?:"[^"]*"[^"]*)*)"', text)
+        if question_match:
+            questions.append(question_match.group(1))
 
-    #ny
+        # If we still don't have questions, try more aggressive pattern matching
+        if not questions:
+            # Look for lines that end with question marks
+            question_lines = re.findall(r'"([^"]*\?)"', text)
+            questions.extend(question_lines)
+
+        result["questions"] = questions
+        return result
+
     def _parse_outputs(self, request_output, top_k=None):
+        """Parse outputs using pattern matching instead of strict JSON parsing"""
         pairs = []
         for cand in request_output.outputs:
             try:
-                text = cand.text.strip()
-                # Handle potential opening/closing backticks that might mess up JSON parsing
-                if text.startswith("```json"):
-                    text = text[7:].strip()
-                if text.endswith("```"):
-                    text = text[:-3].strip()
+                # Extract content using pattern matching
+                content = self._extract_content(cand.text)
 
-                # This regex replaces unescaped control characters with their proper JSON escapes
-                text = re.sub(r'[\x00-\x1F\x7F-\x9F]', lambda m: f"\\u{ord(m.group(0)):04x}", text)
+                # Only add if we got a passage
+                if content["passage"]:
+                    content["_logprob"] = self._score_completion(cand)
+                    pairs.append(content)
 
-                obj = json.loads(text)
-
-                # Handle different question formats
-                if "question" in obj and "questions" not in obj:
-                    obj["questions"] = [obj["question"]]
-                elif "questions" not in obj:
-                    obj["questions"] = []
-
-                assert "passage" in obj
             except Exception as e:
                 print(f"Failed to parse output: {e}")
                 print(f"Text: {cand.text[:100]}...") # Print just the beginning to avoid huge outputs
                 continue
 
-            obj["_logprob"] = self._score_completion(cand)
-            pairs.append(obj)
-
-        pairs.sort(key=lambda d: d["_logprob"], reverse=True)
+        # Sort by log probability
+        pairs.sort(key=lambda d: d.get("_logprob", -float("inf")), reverse=True)
         return pairs[:top_k] if top_k else pairs
 
-
-    ##ny
     def generate(self, claims, keep_k=4):
         prompts = [self._prompt(c) for c in claims]
         outputs = self.llm.generate(prompts, self.sampling)
@@ -120,19 +133,21 @@ class FCQGenerator:
 
 PROMPT_TEMPLATE = """You are a professional fact-checker.
 
-<claim>
+CLAIM:
 {{CLAIM}}
-</claim>
 
-INSTRUCTIONS:
-1. Please write a fact-checking article passage to support, refute, indicate not enough evidence, or present conflicting evidence regarding the claim.
-2. Generate 3-5 concise verifying questions whose answers would help decide the claim's truth value.
+TASK:
+1. Write a fact-checking passage about this claim (about 150-250 words).
+2. Create 3-5 specific questions that would help verify this claim.
 
-Return ONLY valid JSON with keys "passage" and "questions" (where "questions" is an array of strings).
-Example format:
+FORMAT YOUR RESPONSE LIKE THIS:
 {
-  "passage": "Your fact-checking passage here",
-  "questions": ["Question 1?", "Question 2?", "Question 3?"]
+  "passage": "Your fact-checking passage here...",
+  "questions": [
+    "Question 1?",
+    "Question 2?",
+    "Question 3?"
+  ]
 }
 """
 
