@@ -53,7 +53,7 @@ def create_dataframe(direct_preds, baseline_preds, gold_data=None):
 
         # Add ground truth if available
         if gold_data:
-            gold_item = next((item for item in gold_data if item['claim_id'] == claim_id), None)
+            gold_item = gold_data[claim_id]
             if gold_item:
                 row['gold_label'] = gold_item.get('label', '')
 
