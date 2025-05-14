@@ -130,7 +130,7 @@ MODEL_PATH="/fp/projects01/ec403/hf_models/models--meta-llama--Llama-3.1-8B-Inst
 if [ $RESUME_STEP -le 1 ]; then
     echo "Step 1: Generating hypothetical fact-checking documents..."
     python "${CODE_PATH}/fc_and_question_generator.py" \
-        --target_data "${DATA_STORE}/averitec/train_reference.json" \
+        --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
         --json_output "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
         --model "$MODEL_PATH" || exit 1
 fi
