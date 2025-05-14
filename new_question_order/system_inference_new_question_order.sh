@@ -138,7 +138,7 @@ fi
 if [ $RESUME_STEP -le 2 ]; then
     echo "Step 2: Running retrieval..."
     python "${CODE_PATH}/retrival_optimized_new_question_order.py" \
-        --knowledge_store_dir "${KNOWLEDGE_STORE}/${SPLIT}" \
+        --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
         --retrieval_method "bm25_precomputed" \
         --precomputed_bm25_dir "${KNOWLEDGE_STORE}/${SPLIT}/precomputed_bm25" \
         --target_data "${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc.json" \
