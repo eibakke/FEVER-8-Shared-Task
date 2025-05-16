@@ -184,7 +184,7 @@ if [ $RESUME_STEP -le 7 ]; then
     echo "Step 7: Evaluating results..."
     python "${CODE_PATH}/averitec_evaluate.py" \
         --prediction_file "${CODE_PATH}/leaderboard_submission/submission.csv" \
-        --label_file "${CODE_PATH}leaderboard_submission/solution_${SPLIT}.csv" || exit 1
+        --label_file "${CODE_PATH}/leaderboard_submission/solution_${SPLIT}.csv" || exit 1
 fi
 
 echo "All steps completed successfully!"

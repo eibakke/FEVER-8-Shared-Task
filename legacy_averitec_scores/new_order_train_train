@@ -1,0 +1,25 @@
+Question-only score (HU-meteor):             0.48415144966825313
+Question-answer score (HU-meteor):           0.30812602991079685
+====================
+Veracity F1 scores:
+ * Supported:                                0.6335877862595419
+ * Refuted:                                  0.8188976377952756
+ * Not Enough Evidence:                      0.19642857142857142
+ * Conflicting Evidence/Cherrypicking:       0.1276595744680851
+ * macro:                                    0.4441433924878685
+ * acc:                                      0.703
+--------------------
+AVeriTeC scores:
+ * Veracity scores (meteor @ 0.1):           0.7
+ * Veracity scores (meteor @ 0.2):           0.58
+ * Veracity scores (meteor @ 0.25):          0.44
+ * Veracity scores (meteor @ 0.3):           0.317
+ * Veracity scores (meteor @ 0.4):           0.131
+ * Veracity scores (meteor @ 0.5):           0.063
+--------------------
+AVeriTeC scores by type @ 0.25:
+ * Veracity scores (Position Statement):     0.22482086993850603
+ * Veracity scores (Numerical Claim):        0.2848991294826637
+ * Veracity scores (Event/Property Claim):   0.22093204770674935
+ * Veracity scores (Quote Verification):     0.22519586437128838
+ * Veracity scores (Causal Claim):           0.21378731944098792
