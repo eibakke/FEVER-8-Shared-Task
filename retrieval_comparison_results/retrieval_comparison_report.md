@@ -11,9 +11,9 @@ Average Jaccard similarity between bias conditions:
 
 | Bias 1 | Bias 2 | Jaccard Similarity |
 |--------|--------|--------------------|
-| negative | objective | 0.5582 |
+| negative | objective | 0.6159 |
 | positive | negative | 0.4209 |
-| positive | objective | 0.4796 |
+| positive | objective | 0.4608 |
 
 ## Rank Correlation
 
@@ -21,9 +21,9 @@ Average rank correlation between bias conditions:
 
 | Bias 1 | Bias 2 | Spearman | Kendall |
 |--------|--------|----------|----------|
-| negative | objective | 0.7284 | 0.6185 |
+| negative | objective | 0.7908 | 0.6814 |
 | positive | negative | 0.5754 | 0.4856 |
-| positive | objective | 0.6161 | 0.5209 |
+| positive | objective | 0.5663 | 0.4733 |
 
 ## Domain Analysis
 
@@ -63,16 +63,16 @@ Top domains by bias type:
 
 | Domain | Count |
 |--------|-------|
-| nbcnews.com | 109 |
-| usatoday.com | 91 |
-| cnn.com | 76 |
-| cnbc.com | 75 |
-| cbsnews.com | 73 |
-| politifact.com | 70 |
-| snopes.com | 70 |
-| en.wikipedia.org | 67 |
-| factcheck.afp.com | 65 |
-| businessinsider.com | 59 |
+| nbcnews.com | 101 |
+| usatoday.com | 97 |
+| cnn.com | 82 |
+| politifact.com | 82 |
+| cnbc.com | 78 |
+| factcheck.afp.com | 71 |
+| en.wikipedia.org | 69 |
+| snopes.com | 69 |
+| businessinsider.com | 65 |
+| cbsnews.com | 62 |
 
 
 ## Conclusion
