@@ -1,0 +1,1698 @@
+claim_id,claim,ground_truth,baseline_pred,positive_pred,negative_pred,baseline_output,positive_output,negative_output,gt_category,baseline_category,positive_category,negative_category
+0,"In a letter to Steve Jobs, Sean Connery refused to appear in an apple commercial.",Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Sean Connery did not write a letter to Steve Jobs refusing to appear in an Apple commercial.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Sean Connery did not agree to appear in an Apple commercial so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Sean Connery did not write a letter to Steve Jobs refusing to appear in an Apple commercial.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+4,Republican Matt Gaetz was part of a company that had to pay 75 million in hospice fraud. They stole from dying people.,Refuted,Not Enough Evidence,Conflicting Evidence/Cherrypicking,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The company was not found guilty of fraud, and the amount of the settlement is not known.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The company was accused of fraud but the claim says they stole from dying people which is not the same as fraud. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the company was involved in fraud but Matt Gaetz was not.
+
+verdict: 'Refuted'",Refuting,Neutral,Neutral,Refuting
+5,The United States of America and its Western allies have been using their media outlets to publish articles based on fabricated information under allegations of non-compliance with the Chemical Weapons Convention.,Refuted,Conflicting Evidence/Cherrypicking,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there are different views on whether Syria is not complying with the Chemical Weapons Convention and whether the media is publishing fabricated information. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there are allegations against the US and its allies and also against Syria so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the claim is supported.
+
+verdict: 'Supported'",Refuting,Neutral,Refuting,Supporting
+6,"More than 225,000 people dead, 225,000. The estimates are, if we’d have acted responsibly, there’d be 160,000 fewer dead than there are today, because of covid-19.",Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number of deaths is higher than the claim so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number of deaths is higher than the 225,000 in the claim so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number of deaths is higher than the claim so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+10,"Donald Trump, when he thinks of climate change, he says hoax. Well, guess what? Speaking of hoaxes, remember what he said about these increasing violent hurricanes and the frequency? He actually said, maybe we should detonate a nuclear bomb over the Atlantic. By the way, the same stable genius who said the biggest problem we had in the Revolutionary War is we didn’t have enough airports.",Conflicting Evidence/Cherrypicking,Conflicting Evidence/Cherrypicking,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Trump has called climate change a hoax but also said he doesn't know if humans are causing global warming, and he suggests that the climate will ""change back again."" He also said he doesn't think climate change is a ""hoax"" but he also cast doubt on some of the projections and even alluded that climate scientists are politically motivated.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Donald Trump has called climate change a hoax and suggested using nuclear bombs to disrupt the course of hurricanes headed for the US. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Trump has changed his views on climate change and now thinks it is not a hoax but still thinks it is not man made so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Neutral,Supporting,Refuting
+11,The U.S. surgeon general and the Centers for Disease Control both previously said that ‘masks are not effective in preventing [the] general public from catching coronavirus.’,Conflicting Evidence/Cherrypicking,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the CDC and the surgeon general did say that masks were not effective in preventing the general public from catching coronavirus so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the CDC and the surgeon general did say that masks were not effective in preventing the general public from catching coronavirus so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The CDC and WHO both recommend wearing masks to prevent catching coronavirus.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+13,Wearing face masks will stop the spread of covid 19,Supported,Supported,Supported,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The evidence suggests that wearing a face mask will reduce the transmission of COVID-19. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that masks do help prevent the spread of covid so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is not enough evidence to support or refute the claim.
+
+verdict: 'Not Enough Evidence'",Supporting,Supporting,Supporting,Neutral
+15,"Illegal drug, border crossings, and human smuggling activities have decreased in areas where barriers are deployed in the United States.",Not Enough Evidence,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the barriers do decrease the amount of drugs and people crossing the border so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the statistics provided in the QA pairs. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that barriers do not decrease illegal activities but change the location of them so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+34,"The United States, New Zealand, U.K., Australia, and the EU have not included the NDF in their official list of terrorist groups.",Supported,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the NDF is a terrorist organisation and is on the list of terrorist organisations for the countries in the claim so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the countries mentioned in the claim have designated the NDF as a terrorist organisation so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The NDF is not listed as a terrorist organization by the United States, New Zealand, U.K., Australia, and the EU.
+
+verdict: 'Supported'",Supporting,Refuting,Refuting,Supporting
+37,Breitbart News reports that the daughter of Delaware Democratic Senator Chris Coons and seven other underage girls were featured on Hunter Biden's laptop.,Refuted,Not Enough Evidence,Refuted,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The authenticity of the laptop and its contents has not been verified. 
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that there is no evidence of the claim on the laptop, so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The authenticity of the laptop and its contents has not been verified.
+
+verdict: 'Not Enough Evidence'",Refuting,Neutral,Refuting,Neutral
+40,Rock musician Jon Bon Jovi performed for 12 people and 7 pumpkins at a campaign event for Democratic presidential nominee Joe Biden in Pennsylvania.,Refuted,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Jon Bon Jovi did perform at a campaign event for Joe Biden in Pennsylvania so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Jon Bon Jovi did perform at a campaign event for Joe Biden in Pennsylvania so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that there were more than 12 people at the event so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Supporting,Refuting
+42,An 'anti-Black Lives Matter' flag replaced the American flag behind President Trump during a Waukesha campaign rally.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The flag was not an anti-black lives matter flag but a blue lives matter flag. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The flag is associated with the Blue Lives Matter movement, which was started in response to the Black Lives Matter movement.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The flag was not an anti-black lives matter flag but a blue lives matter flag which is associated with the blue lives matter movement which is a pro-police group. 
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+43,Donald Trump said that $15 an hour is too much for essential workers,Conflicting Evidence/Cherrypicking,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that Trump did not say that $15 an hour is too much for essential workers.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that Trump was against a $15 an hour minimum wage, which is what the claim states he said.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that Trump did not say that $15 an hour is too much for essential workers. 
+
+verdict: 'Refuted'",Neutral,Refuting,Supporting,Refuting
+44,Deliberately infecting children to COVID-19 at “pox parties” could be a good way to help create herd immunity against COVID-19 without a vaccine.,Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that deliberately infecting children to COVID-19 at “pox parties” is not a good way to help create herd immunity against COVID-19 without a vaccine.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that deliberately infecting children to COVID-19 at “pox parties” is not a good way to help create herd immunity against COVID-19 without a vaccine.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that this is not a good way to create herd immunity and is not supported by the WHO or scientists so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Refuting,Supporting
+49,The US saw the best carbon emission numbers in 35 years under President Donald Trump's administration.,Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the emissions did go down but not as much as they did under Obama so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the emissions did go down so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the US did have the lowest carbon emissions in 35 years so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+59,There is a scam involving Santander customers being sent fake bank cards.,Not Enough Evidence,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Santander customers are being targeted by a scam involving fake bank cards.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is a scam involving Santander customers being sent fake bank cards so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the bank are not sending out fake bank cards so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+62,Scientific American magazine warned that 5G technology is not safe.,Refuted,Not Enough Evidence,Not Enough Evidence,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is not enough evidence to support the claim that 5G is not safe.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is not enough evidence to support the claim that 5G is not safe.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 5th Q&A pair states that the WHO has classified mobile phones as a possible carcinogen, which is not the same as saying 5G is not safe as claimed.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Neutral,Neutral,Neutral
+70,Dr Anthony Fauci wrote a paper regarding the Spanish Flu and stated that the majority of deaths in 1918-1919 was because of bacterial pneumonia from wearing masks.,Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths in the 1918-1919 influenza pandemic likely resulted directly from secondary bacterial pneumonia caused by common upper respiratory-tract bacteria.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths during the influenza pandemic of 1918-1919 were not caused by the influenza virus acting alone, report researchers from the National Institute of Allergy and Infectious Diseases (NIAID), part of the National Institutes of Health.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths in the 1918-1919 pandemic resulted directly from secondary bacterial pneumonia.
+
+verdict: 'Supported'",Refuting,Refuting,Refuting,Supporting
+82,In the US lockdowns are partly responsible for excess deaths not directly attributed to COVID-19 which were observed in 2020.,Not Enough Evidence,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that there were deaths that were not directly attributed to covid-19 but were still caused by the lockdowns. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that there were excess deaths that were not directly attributed to covid-19, and that lockdowns may have contributed to these deaths.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that there were excess deaths that were not attributed to covid-19, and that these deaths were not directly caused by the lockdowns.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+84,It's unclear how Joe Biden acquired his recent wealth since leaving office in 2017,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Joe Biden has made over $15 million since leaving office so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Joe Biden and his wife earned more than $15 million in the two years after he left the Obama administration. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Joe Biden has earned over $15 million since leaving office so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+89,"Most deaths in the 1918 influenza pandemic originated from bacterial pneumonia caused by face masks and that Dr Anthony Fauci, the US government’s top expert in the fight against Covid-19, knew about it.",Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths during the influenza pandemic of 1918-1919 were not caused by the influenza virus acting alone, report researchers from the National Institute of Allergy and Infectious Diseases (NIAID), part of the National Institutes of Health.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths in the 1918–1919 influenza pandemic likely resulted directly from secondary bacterial pneumonia caused by common upper respiratory-tract bacteria.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The majority of deaths in the 1918–1919 influenza pandemic likely resulted directly from secondary bacterial pneumonia caused by common upper respiratory-tract bacteria.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+91,"A message will be sent to your phone claiming to show that the Covid19 curve is flattening in India, But It will contain a malicious file",Refuted,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the message is a phishing attempt and should not be opened.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the claim is a hoax and not a real warning so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the message is a hoax and not a malicious file so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Refuting,Refuting
+95,Controversial abortion methods are allowed under New Zealand's Abortion Legislation Act (2020).,Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Abortion Legislation Act 2020 is an Act of Parliament in New Zealand allowing unrestricted access to abortion within the first 20 weeks of pregnancy, and repealing sections of the Crimes Act 1961 related to unlawful abortion.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that abortion is legal in New Zealand up to birth and so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Abortion Legislation Act 2020 is an Act of Parliament in New Zealand allowing unrestricted access to abortion within the first 20 weeks of pregnancy, and repealing sections of the Crimes Act 1961 related to unlawful abortion.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+96,"Commission on Human Rights (CHR) Chairman Chito Gascon called a “surprise military attack” by the Philippine Army,  conducted on members of the New People’s Army (NPA) a “violation of human rights.”",Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the Commission on Human Rights (CHR) does not agree with the claim so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Commission on Human Rights (CHR) Chairman Chito Gascon did call a “surprise military attack” by the Philippine Army,  conducted on members of the New People’s Army (NPA) a “violation of human rights.”
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the Commission on Human Rights (CHR) Chairman Chito Gascon did not call a “surprise military attack” by the Philippine Army,  conducted on members of the New People’s Army (NPA) a “violation of human rights.”
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+100,"US president Joe Biden (candidate at the time of claim) supports the new green deal (The Green New Deal is a nonbinding resolution, introduced by Rep. Alexandria Ocasio-Cortez and Sen. Ed Markey last year, to tackle climate change.)",Conflicting Evidence/Cherrypicking,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Biden supports the Green New Deal so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Biden supports the Green New Deal but not the way it is written so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Biden supports the Green New Deal so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Refuting,Refuting
+103,"Former President Donald Trump who lost the popular vote by 3 million has nominated a full third of The United Supreme Court, as of 13th October 2020.",Supported,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Donald Trump has nominated 2 supreme court judges so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Donald Trump has nominated 3 supreme court judges so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Donald Trump has nominated 3 supreme court judges so the claim is supported.
+
+verdict: 'Supported'",Supporting,Refuting,Supporting,Supporting
+113,Congress MP Rahul Gandhi has been listed as the seventh most educated leader by Forbes.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Rahul Gandhi did not graduate from Cambridge University and did not get a degree from Harvard University so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Rahul Gandhi has a degree from the University of Cambridge so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Sonia Gandhi is the one who is ranked on the list not Rahul Gandhi so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+115,More people who wear masks become sick with COVID-19 compared to non-mask wearers,Conflicting Evidence/Cherrypicking,Refuted,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The evidence suggests that masks are effective in preventing the transmission of COVID-19. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that masks are helpful in preventing the spread of covid and also help the wearer. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The evidence is conflicting. Some studies show that masks help prevent COVID-19, while others do not.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Neutral,Refuting,Refuting,Neutral
+122,"A BLM or antifa activist shot and killed a patriot at a protest in Denver, Colorado on October 10, 2020.",Refuted,Not Enough Evidence,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that a protestor was shot and killed in a protest in Denver Colorado on the 10th of October 2020, which is the date of the claim, however the 9th Q&A pair states that only one person is in custody for the shooting, and no mention is made of whether the person in custody is a BLM or antifa activist, or a patriot, so there is not enough evidence to support or refute the claim.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the man was not a BLM or antifa activist so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the victim was a pro-police supporter, which is not what is claimed, so this is not correct. However, the 9th Q&A pair states that the shooter was not a BLM or antifa supporter, so this is not correct either. The 8th Q&A pair states that the deadliest protest was one where a counter protestor was killed by a far-right protestor, which is not what is claimed, so this is not correct. The 7th Q&A pair states that the protest was peaceful, which is not what is claimed, so this is not correct. The 6th Q&A pair states that the shooter was not a BLM or antifa supporter, so this is not correct. The 5th Q&A pair states that a person was fatally shot following counter-demonstrations at the Civic Center Park, which is not what is claimed, so this is not correct. The 4th Q&A pair states that the victim was identified as a right-wing ""Patriot Muster"" rally, which is not what is claimed, so this is not correct. The 3rd Q&A pair states that a photojournalist for The Denver Post was struck with pepper balls multiple times while documenting protests in Denver, Colorado, on May 28, 2020, which is not what is claimed, so this is not correct. The 2nd Q&A pair states that a Black Lives Matter protester was killed in a shooting at a protest in Austin, Texas, over the weekend, which is not what is claimed, so this is not correct. The 1st Q&A pair states that a Denver Post reporter Alex Burness was hit by a pepper ball and foam projectiles while covering protests in Denver, Colorado, on the evening of May 31, 2020, which is not what is claimed, so this is not correct.
+
+verdict: 'Refuted'",Refuting,Neutral,Refuting,Refuting
+123,From 8th October the UK government will combine weekly flu and covid reports.,Supported,Supported,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the reports will be combined so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the reports will be combined but not the data collection, so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the reports will be combined but not the data collection.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Supporting,Supporting,Refuting,Neutral
+126,"Ulysses S. Grant, commander of the Union Army during the American Civil War, was a slave owner.",Supported,Conflicting Evidence/Cherrypicking,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Ulysses S. Grant did own a slave but he freed him. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Ulysses S. Grant did own a slave but he freed him before the civil war so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Ulysses S. Grant did own a slave but he freed him before the civil war so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Neutral,Refuting,Refuting
+131,We do not know where Covid-19 places among causes of death because the data is not published.,Refuted,Refuted,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The data is available but not always up to date. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the data is available and the cause of death is recorded so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The data is available but not all of it is up to date. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Refuting,Refuting,Neutral
+138,Fly swatters are now available on Joe Biden's online store.,Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the fly swatters were sold on Joe Biden's online store so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The swatters were sold out within hours of their release. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the fly swatters were sold on Joe Bidens online store so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+141,"China seek for court’s approval to kill the over 20,000 coronavirus patients to avoid further spread of the virus.",Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, the claim originated from a fake news website called ""news-af.feednews.com"". The claim also states that China want to kill over 20,000 coronavirus patients, which is also refuted. According to the QA pairs, China did not want to kill coronavirus patients, instead they wanted to quarantine them. Therefore, the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that China did not want to kill the patients so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, China has not sought court approval to kill over 20,000 coronavirus patients. The claim is also not supported by the photos in the misleading posts. The WHO has also said there is “no specific medicine” to “prevent or treat” the viral infection. Therefore, the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Refuting,Supporting
+143,"New Zealand spends less on pensions than most wealthy countries, spending 4.4 per cent of GDP",Conflicting Evidence/Cherrypicking,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that New Zealand does spend less on pensions than most wealthy countries so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that New Zealand does spend less on pensions than most wealthy countries so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that New Zealand does spend more than 4.4% of GDP on pensions so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+145,"When Joe Biden was US vice-president they took a month to act on information that might have saved Kayla Mueller, a humanitarian worker held hostage and sexually abused by the Islamic State terrorist group",Supported,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the US government did not act promptly to save Kayla Mueller so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the US government did not take a month to act on information that might have saved Kayla Mueller, as the claim states.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the US government did not take a month to act on information that might have saved Kayla Mueller, a humanitarian worker held hostage and sexually abused by the Islamic State terrorist group.
+
+verdict: 'Refuted'",Supporting,Supporting,Refuting,Refuting
+147,"Because of a so-called trade war with China, America lost 300,000 manufacturing jobs.",Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the trade deficit with China is responsible for 2/3 of the job losses in the US, which is less than the 300,000 claimed. 
+
+verdict: 'Refuted'","The trade deficit with Mexico eliminated 1,143,400 manufacturing jobs over the same period, or 34.6 percent of the total. The trade deficit with Canada eliminated 1,026,300 manufacturing jobs, or 29.7 percent of the total. The trade deficit with all countries eliminated 2,560,200 manufacturing jobs, or 73.5 percent of the total.
+
+Q11: What is the relationship between the US trade deficit with China and the loss of manufacturing jobs in the US between 2001 and 2018?
+A11: The growing trade deficit with China eliminated 2,793,200 manufacturing jobs between 2001 and 2018, nearly three-fourths (75.4%) of the total.
+
+Q12: How many U.S. manufacturing jobs were lost between December 2001 and December 2018?
+A12: If exports to China had increased at this pace, it would have supported the creation of millions of U.S. manufacturing jobs and prevented much of the collapse of overall U.S. manufacturing employment between December 2001 and December 2018, when 2.9 million U.S. manufacturing jobs were lost (BLS 2019a).
+
+Q13: How many U.S. jobs were lost due to the trade war with China by 2019?
+A13: Overall, a widely cited Moody's economic analysis found that the trade war had cost 300,000 U.S. jobs by 2019, across manufacturing, wholesale, retail and other sectors.[23]
+
+Q14: What is the relationship between the US trade deficit with China and the loss of manufacturing jobs in the US between 2001 and 2013?
+A14: Trade deficits are highly correlated with job loss or displacement by industry, as shown in Table 3. The growing trade deficit with China eliminated 2,391,500 manufacturing jobs between 2001 and 2013, more than three-fourths (75.7 percent) of the total. The trade deficit with Mexico eliminated 1,143,400 manufacturing jobs over the same period, or 34.6 percent of the total. The trade deficit with Canada eliminated 1,026,300 manufacturing jobs, or 29.7 percent of the total. The trade deficit with all countries eliminated 2,560,200 manufacturing jobs, or 73.5 percent of the total.
+
+Q15: What is the relationship between the US trade deficit with China and the loss of manufacturing jobs in the US between","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that 1 million jobs were lost due to the trade war with China, which is significantly less than the 3 million claimed.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+148,U.S. President Donald Trump has suspended all travel from China.,Conflicting Evidence/Cherrypicking,Refuted,Conflicting Evidence/Cherrypicking,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that there are exemptions to the ban so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that there are exemptions to the ban so it is not a complete ban.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that there were exemptions to the travel ban so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Refuting,Neutral,Refuting
+159,U.S. mortalities this year are not materially different from the previous 5 years,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mortality rate has changed over the past 5 years so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mortality rates are not materially different from the previous 5 years so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mortality rates have increased so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+163,"The content of the conspiracy network, Radio Quebec, hosted by Alexis Cossette-Trudel is banned by Facebook.",Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that Facebook has removed the radio network from their platform, but not banned them as the claim states.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that Facebook has removed the content of the conspiracy network, Radio Quebec, hosted by Alexis Cossette-Trudel.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Facebook has removed the radio network page but not the radio host's personal page so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+166,49 percent of Nigerians are in extreme poverty.,Refuted,Refuted,Conflicting Evidence/Cherrypicking,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the number of people in poverty is higher than 49% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show a wide range of numbers for the amount of people in poverty in Nigeria, with the highest being 102.4 million and the lowest being 82.9 million. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show conflicting evidence with the number of people in poverty in Nigeria.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Refuting,Neutral,Neutral
+167,"During the Obama/Biden administration, 18,000 people got clemency.",Refuted,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the president did grant clemency to 18,000 people so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the president did grant clemency to 18,000 people so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is not 18,000 so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Supporting,Refuting
+177,President Trump is not on supplemental oxygen.,Refuted,Conflicting Evidence/Cherrypicking,Not Enough Evidence,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the president was not on oxygen at the time of the claim but had been earlier.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Conley said the president had been able to walk around his residence and had not experienced shortness of breath. The president’s medical team said the president would spend the next few days at the White House recovering from the virus.,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the president was not on oxygen at the time of the claim but does not state if he had been on oxygen prior to this time.
+
+verdict: 'Not Enough Evidence'",Refuting,Neutral,Neutral,Neutral
+180,"Dr. Ebeneezer, a medical doctor and a herbal practitioner at the Amuzu Hospital has instructed men to have sex at least 21 times a month to avoid prostate cancer.",Refuted,Refuted,Not Enough Evidence,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that having sex 21 times a month is not good for prostate cancer so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs, however the claim is quite old and the QA pairs are quite old too. Therefore, the claim is not enough evidence.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is no evidence that having sex 21 times a month would prevent prostate cancer so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+192,It makes no sense for oil to be cheaper in Nigeria than in Saudi Arabia.,Not Enough Evidence,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that it is cheaper to produce oil in Saudi Arabia so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that it is cheaper to produce oil in Saudi Arabia so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that it is cheaper to produce oil in Saudi Arabia so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+194,"At independence, Nigeria had a population of 45 million",Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The population at independence was 45.14 million
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was not 45 million so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was around 45 million so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+197,Trade relations between the United States and Africa have declined significantly while Donald Trump was president of the US.,Supported,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The trade between Africa and China has seen explosive growth over the last two decades, with China's total trade in goods increasing faster and surpassing U.S. trade in 2009.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the trade relations have declined so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the trade has declined so the claim is supported.
+
+verdict: 'Supported'",Supporting,Refuting,Supporting,Supporting
+200,Other Countries Have Proved that the U.S. FDA Was Wrong to Withdraw Approval Of Hydroxychloroquine as COVID Drug,Refuted,Conflicting Evidence/Cherrypicking,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The FDA was not wrong to withdraw approval of Hydroxychloroquine as a COVID-19 drug. Other countries have proved that the U.S. FDA was wrong to withdraw approval of Hydroxychloroquine as COVID-19 drug.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the drug was withdrawn due to it not being effective and also causing heart problems.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the drug was not effective and so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Neutral,Refuting,Refuting
+201,"U.S. President Donald Trump and his wife, First Lady Melania Trump, have tested positive for COVID-19",Supported,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that they did test positive for covid so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that they did test positive for covid so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the president and his wife did not test positive for covid-19 so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Supporting,Supporting,Refuting
+203,Nigeria’s urban population at independence was approximately 7 million.,Supported,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was not 7 million so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was not 7 million so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the population was around 7 million at independence so the claim is supported.
+
+verdict: 'Supported'",Supporting,Refuting,Refuting,Supporting
+206,There has been a 60% drop in government revenue in Nigeria.,Not Enough Evidence,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the revenue has not dropped by 60% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the revenue has dropped so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the revenue has not dropped by 60% so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Refuting,Supporting,Refuting
+209,Nigeria has seen a 60% drop in government revenue,Not Enough Evidence,Refuted,Refuted,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the revenue has not dropped by 60% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the revenue has not dropped by 60% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs do not show enough evidence to support or refute the claim.
+
+verdict: 'Not Enough Evidence'",Neutral,Refuting,Refuting,Neutral
+210,There was a 40% drop in oil prices in Nigeria.,Not Enough Evidence,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the oil prices did drop but not by 40% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the oil prices did drop in Nigeria so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the oil prices did drop in Nigeria so the claim is supported.
+
+verdict: 'Supported'",Neutral,Refuting,Supporting,Supporting
+215,52% of Nigeria’s current population lives in urban areas.,Supported,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 53.52% so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 53.52% so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair shows that the percentage of Nigerians living in urban areas is 46.48% not 52% so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Supporting,Supporting,Refuting
+216,52% of Nigeria’s current population lives in urban areas,Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 53.52% so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 44.1% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the percentage of people living in urban areas is around 50% so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+218,52% of Nigeria’s current population lives in urban areas.,Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 53.52% so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 47% not 52% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the number is 53.52% so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+224,"At independence, Nigeria had a population of 45 million.",Supported,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was around 45 million so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the population was around 45 million so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The population at independence was 63 million not 45 million.
+
+verdict: 'Refuted'",Supporting,Supporting,Supporting,Refuting
+230,"Judith Collins said, on Donald Trump, ""actually, he's a damn sight better than any of the other Presidents that have been there before him, including those that you admire, Miss Arden,""",Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, Judith Collins did not say Donald Trump was “a damn sight better” than previous presidents, only that it was better he had not started any wars, unlike his predecessors. Therefore, the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs. 
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+231,Nigeria’s urban population at independence was approximately 7 million.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The population of Nigeria in 1960 was 44.9 million according to the 1963 census. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the urban population was around 7 million so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The population of Nigeria at independence was 63 million, not 7 million.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+237,"The alleged concerns of the United States over Cuba's cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].",Not Enough Evidence,Supported,Supported,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The United States has concerns about the cooperation between Cuba and the Pan American Health Organization (PAHO) in the ""More Doctors"" program. The United States has also protested the policy as a form of poaching that undermines Cuba's health system and hinders new cooperation between the United States and Cuba.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the United States had concerns about Cuba's cooperation with the Pan American Health Organization, which is the claim.
+
+verdict: 'Supported'","He also questioned the qualifications of the Cuban doctors and suggested that they should sign individual contracts.
+
+Q11: What are the concerns of the United States over Cuba's cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+A11: The United States’ concerns about Cuba’s cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+
+Q12: What is the 'More Doctors' program?
+A12: The program, called Mais Médicos, was created in 2013 and has placed more than 10,000 foreign doctors in Brazil, mostly in the poorest states in the northeast and in the Amazon.
+
+Q13: What is the relationship between the United States and the 'More Doctors' program?
+A13: The United States has been trying to undermine the program, and has even threatened to cut its contributions to the Pan American Health Organization (PAHO), which helps oversee the program.
+
+Q14: What are the concerns of the United States over Cuba's cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+A14: The United States’ concerns about Cuba’s cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+
+Q15: What are the concerns of the United States over Cuba's cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+A15: The United States’ concerns about Cuba’s cooperation, in this case about the ‘More Doctors’ program, are neither legitimate nor pertinent to be discussed at PAHO [Pan American Health Organization].
+
+Q16: What is the 'More Doctors' program?
+A16: The program, called Mais Médicos, was created in 2013 and has placed more than 10,000 foreign doctors in Brazil, mostly in the poorest states in the northeast and in the Amazon.
+
+Q17: What is the relationship between the United States and the 'More Doctors' program?
+A17: The United States has been trying to undermine the program, and has even threatened to cut its contributions to the Pan American Health Organization (PAHO), which helps oversee the program.
+
+Q18: What are the concerns of the United States over Cuba",Neutral,Supporting,Supporting,Neutral
+242,"U.S. Centers for Disease Control and Prevention downgrades COVID-19, rating it less fatal than seasonal flu",Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the CDC did not down grade covid-19 as is claimed, so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that COVID-19 is more fatal than the flu so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the covid-19 is more fatal than the flu so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+247,There is more chance of an asteroid hitting Earth on 02/11/2020 than dying from COVID-19.,Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 1st Q&A pair states that there is a 1 in 600 chance of an asteroid hitting earth on the date in the claim, which is much higher than the 1 in 2777 chance of death from covid as claimed, but the 3rd Q&A pair state that the asteroid in the claim has no chance of hitting earth on the date in the claim so this refutes the claim.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 1st Q&A pair states that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 2nd Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 3rd Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 4th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 5th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 6th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 7th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 8th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 9th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+The 10th Q&A pair state that the chances of an asteroid hitting earth on the date in the claim is 1 in 2700 which is much lower than the 1 in 600 chance of dying from covid as claimed.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 1st Q&A pair states that the chances of an asteroid hitting earth on the date in the claim is 1 in 240 which is higher than the chances of dying from covid which is 1 in 6500 so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Refuting,Supporting
+251,FAcebook meme shows real stats on Black v White Violence and Police shootings,Refuted,Refuted,Supported,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 2nd and 3rd Q&A pair show that the numbers are not correct in the claim so it is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that black people are more likely to be shot and killed by police than white people. 
+
+verdict: 'Supported'","The study also used the 2017 Uniform Crime Reporting (UCR) data, which is the most recent data available from the FBI at the time of the study. The study did not include nonfatal shootings, as the data is not comprehensive.
+
+Q11: What does the study show in relation to the claim that the rate of Black people being killed by the police is the same as White people?
+A11: The study found that the rate of Black people being killed by the police is 3.5 times higher than that of White people. The study also found that the rate of Black people being killed by the police is 6.6 times higher than that of Hispanic people. The study did not include nonfatal shootings, as the data is not comprehensive. The study used combined data on fatal police shootings of victims not known to be armed from January 1, 2013 through June 30, 2017, obtained from the Mapping Police Violence Project database, the most reliable source of data on police shootings. The study also used the 2017 Uniform Crime Reporting (UCR) data, which is the most recent data available from the FBI at the time of the study. The study did not include nonfatal shootings, as the data is not comprehensive. The study found that the rate of Black people being killed by the police is 3.5 times higher than that of White people. The study also found that the rate of Black people being killed by the police is 6.6 times higher than that of Hispanic people. The study did not include nonfatal shootings, as the data is not comprehensive. The study used combined data on fatal police shootings of victims not known to be armed from January 1, 2013 through June 30, 2017, obtained from the Mapping Police Violence Project database, the most reliable source of data on police shootings. The study also used the 2017 Uniform Crime Reporting (UCR) data, which is the most recent data available from the FBI at the time of the study. The study did not include nonfatal shootings, as the data is not comprehensive. The study found that the rate of Black people being killed by the police is 3.5 times higher than that of White people. The study also found that the rate of Black people being killed by the police is 6.6 times higher than that of Hispanic people. The study did not include nonfatal shootings, as the data is not comprehensive. The study used combined data on fatal police shootings of victims",Refuting,Refuting,Supporting,Neutral
+252,"New Zealand opposition leader Judith Collins is opposed to new environmental legislation because of her connection to Oravida, a local water and dairy company that exports produce to China.",Refuted,Not Enough Evidence,Not Enough Evidence,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Judith Collins has a connection to Oravida but it does not show that she is opposed to new environmental legislation because of her connection to Oravida.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Judith Collins has a connection to Oravida but it does not show that she is opposed to new environmental legislation because of her connection to Oravida.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Judith Collins was accused of a conflict of interest with Oravida bosses - a company where her husband was a director - and a Chinese official.
+
+verdict: 'Supported'",Refuting,Neutral,Neutral,Supporting
+259,Govt of India is providing money to bereaved families of COVID-19 - Insurance benefits for Covid-19 deaths can be claimed under the schemes of PMJJBY and PMSBY.,Conflicting Evidence/Cherrypicking,Refuted,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The PMSBY does not cover COVID-19 deaths. It is an accident insurance scheme ‘offering accidental death and disability cover for death or disability on account of an accident’.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The scheme is only applicable to people between the ages of 18-55 who have voluntarily signed up for the scheme that was launched in 2015.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The PMJJBY does cover COVID-19 deaths, but only under certain conditions. The PMSBY does not cover COVID-19 deaths.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Neutral,Refuting,Refuting,Neutral
+264,Donald Trump has not appoointed any black federal judges.,Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that Trump has appointed a few black judges so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that Trump has appointed only one black federal judge so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that Donald Trump has not appointed any black federal judges, which is correct.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+269,"Sunil Gavaskar said that ""Virat Kohli has only trained against Anushka [Sharma]'s balls during the lockdown""",Conflicting Evidence/Cherrypicking,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Gavaskar did say the quote so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Gavaskar was talking about a video of the couple playing cricket and not that Virat had only trained against Anushka's bowling.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+274,Adani Logistics Limited has established a food silo in the aftermath of the three farm and agriculture-related bills passing Parliament.,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the silo was built before the bills were passed so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The company has established a food silo in India.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the silo was built many years before the claim date so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+275,"Shah Rukh Khan's Kolkata Knight Riders (KKR) is acquiring a 1.28 per cent stake in Reliance Retail at Rs 5,500 crore",Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the KKR is acquiring a stake in Reliance Retail but not Shah Rukh Khan's Kolkata Knight Riders (KKR).
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that KKR are investing in Reliance Retail but not acquiring a stake in the company so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that KKR are acquiring a 1.28% stake in Reliance Retail so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Refuting,Supporting
+276,"Due to coronavirus schools and colleges have been closed and because of this, the education of students has been affected. The government is providing free laptops to all the students so that they can complete their education and also give exams with the help of the internet",Refuted,Refuted,Supported,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the laptops are not reaching all students and that there are not enough laptops for all students so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the government is providing laptops to students to help them with their education during the pandemic so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the government is providing laptops to students to help with their education during the pandemic but there are issues with the digital divide and not all students have access to the laptops or the internet to use them.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Refuting,Supporting,Neutral
+277,New York City Mayor Bill de Blasio officially ordered all police and citizens to stop sharing the booking photo of his daughter caught up during rioting,Refuted,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the police union did share the photo of the mayors daughter as claimed, so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Mayor did not officially order the police and citizens to stop sharing the booking photo of his daughter. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the police union did share the photo of the daughters arrest as claimed, so the claim is supported.
+
+verdict: 'Supported'",Refuting,Supporting,Refuting,Supporting
+283,Transitioning to 100 per cent renewable electricity generation increase power prices in New Zealand,Refuted,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the prices are going to increase so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the prices are going to increase but it is not a bad thing as it is a good thing for the environment so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the prices will increase but it is not a bad thing as it is to do with the renewable energy so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Refuting,Refuting
+285,California Governor Gavin Newsom made it so that convicted sexual predators have lighter sentences.,Refuted,Conflicting Evidence/Cherrypicking,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the law was changed but it was to do with the judges having more flexibility and not that the sentences were made lighter.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the law was not about reducing sentences but about the circumstances of when a sex offender would be put on the register and the circumstances of the crime.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the law was to do with the age of consent and not the sentence of a convicted sexual predator.
+
+verdict: 'Refuted'",Refuting,Neutral,Refuting,Refuting
+288,Black Lives Matter wants to destroy the nuclear family.,Conflicting Evidence/Cherrypicking,Refuted,Conflicting Evidence/Cherrypicking,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that they do not want to destroy the nuclear family but want to support each other as extended families and ‘villages’ that collectively care for one another, especially our children, to the degree that mothers, parents, and children are comfortable.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Black Lives Matter movement does want to disrupt the nuclear family, but not destroy it as is claimed.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that they do not want to destroy the nuclear family but want to support each other as extended families and ‘villages’ that collectively care for one another, especially our children, to the degree that mothers, parents, and children are comfortable.
+
+verdict: 'Refuted'",Neutral,Refuting,Neutral,Refuting
+289,"Fact Check: WHO has not approved home remedy for COVID-19, don’t fall for misinformation",Supported,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The WHO has not approved any home remedy for COVID-19.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The World Health Organization has a page on false COVID-19 ""cures,"" which lists lemon and turmeric as unproven cures for COVID-19.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The World Health Organization has a page on false COVID-19 ""cures,"" which lists lemon and turmeric as unproven cures for COVID-19.
+
+verdict: 'Refuted'",Supporting,Supporting,Refuting,Refuting
+290,Basketball superstar Michael Jordan is joining NASCAR as a team owner.,Supported,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Michael Jordan is not joining NASCAR as a team owner but is partnering with Denny Hamlin to start a new NASCAR Cup Series team.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Michael Jordan is not joining NASCAR as a team owner but he is partnering with Denny Hamlin to form a NASCAR team with Bubba Wallace as the driver.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the answers. Michael Jordan is partnering with Denny Hamlin to start a new NASCAR Cup Series team.
+
+verdict: 'Supported'",Supporting,Refuting,Refuting,Supporting
+292,30% to 40% of Americans will have voted by Oct. 1. 2020,Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the amount of people who voted early was higher than the amount in the claim so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that the amount of people voting early is increasing and that it is more popular with some groups of people than others. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the amount of people voting early is increasing and so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+299,You could text RBG to 50409 to sign a petition to tell your senator not to replace Ruth Bader Ginsberg in the Supreme court until after the 2020 election,Supported,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, the number 50409 is for signing a petition to tell your senator not to replace Ruth Bader Ginsberg in the Supreme court until after the 2020 election. However, the number 50409 is for signing a petition to tell your senator to pass the ERA (Equal Rights Amendment). Therefore, the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the petition was not to delay the replacement of Ruth Bader Ginsburg in the Supreme Court so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Supporting,Refuting,Refuting
+312,John Cammo was the only one to predict that President Trump would be infected with Covid-19.,Refuted,Refuted,Not Enough Evidence,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, President Trump downplayed the threat of COVID-19, and did not predict that he would be infected with the virus. Therefore, the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is not based on a credible source. 
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, there were other people who also predicted that Trump would be infected with Covid-19. Therefore, the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+316,Canada would like to reopen the border with the U.S,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the border is not going to be opened so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the border is closed and will be extended so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the border is not opening so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+320,The White House blocked a plan to send facemasks to every household in April 2020.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The White House did not block a plan to send facemasks to every household in April 2020. The plan was abandoned by the White House.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The White House did block a plan to send facemasks to every household in April 2020.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The White House did not block a plan to send facemasks to every household in April 2020. 
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+321,"In 2019, 10 million fell ill from tuberculosis and 1.5 million died but nobody needs to wears a mask for tuberculosis",Refuted,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that 10 million people fell ill with tuberculosis and 1.5 million died so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that tuberculosis is a serious disease and so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The evidence shows that 10 million people fell ill with tuberculosis and 1.5 million died in 2019. The evidence also shows that masks can reduce the spread of tuberculosis. Therefore, the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Refuting,Refuting
+324,US Miami-Dade County Mayor Carlos Giminez kept his taxpayer-funded Mercedes-Benz after slashing $400 million in government jobs and spending.,Conflicting Evidence/Cherrypicking,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mayor did cut the budget and jobs so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The mayor did not reduce his own expenses, he kept his car and the county commission was against it.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mayor did not keep his car so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Refuting,Refuting
+327,Carlos Gimenez approved a 67% pay raise for himself and increased his own pension.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the mayor did not increase his pension so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mayor did give himself a 67% pay rise and also cut the salary of others so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the mayor did not increase his pension so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+330,Ventura County election officials are reducing voting locations in order to limit in-person voter turnout.,Supported,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the voting locations are not being reduced so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the voting locations are being reduced due to a shortage of polling locations and poll workers so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the voting locations are not being reduced so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Refuting,Supporting,Refuting
+333,"Development Control Department of the Abuja Metropolitan Management Council (AMMC), an agency of the Federal Capital Territory Administration (FCTA)of Nigeria, in 2020 marked 37 Estates for demolition.",Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 37th estate was not demolished. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Department of Development Control of the Abuja Metropolitan Management Council (AMMC) has begun clearing structures built on waterways in contravention of approved building plans in Lokogoma District of the Federal Capital City.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Department of Development Control of the Abuja Metropolitan Management Council (AMMC) has begun clearing structures built on waterways in contravention of approved building plans in Lokogoma District of the Federal Capital City.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+340,"A 6 year old boy begged God to save his mother's life after she was ambushed. Today the NFL honored the organization that yelled ""hope they die"" outside the mothers hospital.",Refuted,Not Enough Evidence,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 6th Q&A pair states that the NFL did not comment on the accusation made in the claim, so there is no evidence to support or refute the claim.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 6 year old boy's mother was not ambushed. She had cancer and the boy prayed for her recovery. The NFL did not honour the organisation that wished death on the mother. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is no evidence that the NFL honored the organization that yelled ""hope they die"" outside the mother's hospital. 
+
+verdict: 'Refuted'",Refuting,Neutral,Refuting,Refuting
+345,"The Indian UPSC examination is discriminatory in favour of Muslim candidates.(Sudarshan News Editor-in-Chief, Suresh Chavhanke, 11 September, 2020, UPSC Jihad Par Ab Tak Ka Sabse Bada Khulasa (The Biggest Expose of All Time on UPSC Jihad)",Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the percentage of Muslims selected is less than the percentage in the population so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the claim is not correct and that Muslims do not have an advantage in the UPSC examination.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the percentage of Muslims in the UPSC is less than the percentage in the population of India, so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Refuting,Supporting
+356,Nigerian Government had placed a ban on alcohol in sachet and polythene.,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the government has not placed a ban on alcohol in sachets and polythene so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the ban is in place so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the government has not placed a ban on alcohol in sachets and polythene so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+361,"Joe Biden’s own chief of staff said that when Biden managed swine flu in 2009, they quote, “Did every possible thing wrong.”",Supported,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Joe Biden's chief of staff did not say that Biden did everything wrong so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Joe Biden's chief of staff did say that they did everything possible wrong so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the answers and sources. 
+
+verdict: 'Supported'",Supporting,Refuting,Supporting,Supporting
+366,Biden called law enforcement the enemy.,Conflicting Evidence/Cherrypicking,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden has rejected support for those calls multiple times: in a spokesperson’s statement, in an op-ed, during fundraisers, in a number of local news interviews, and in response to a questionnaire from the Fraternal Order of Police, an organization of law enforcement officers.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden said he did not support defunding the police.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden has said he does not support defunding the police and has supported police in the past.
+
+verdict: 'Refuted'",Neutral,Refuting,Refuting,Supporting
+369,CDC announces that ordinary (non-N95) masks (which most people are wearing) will do nothing to protect you against wildfire smoke because they do not catch small particles,Supported,Conflicting Evidence/Cherrypicking,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The CDC specifically says that N95 respirators provide protection from wildfire smoke, but adds that “they might be in short supply as frontline healthcare workers use them during the pandemic.”
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The CDC does not recommend relying on common dust masks for protection from smoke in the atmosphere. These masks are designed to filter large particles such as sawdust, not ash and other small particles found in wildfire smoke.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The CDC specifically says that N95 respirators provide protection from wildfire smoke, but adds that “they might be in short supply as frontline healthcare workers use them during the pandemic.”
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Supporting,Neutral,Refuting,Neutral
+371,The upper age-limit for Muslim candidates for the UPCS (i.e. Union Public Service Commission for recruitment to higher Civil Services of the Government of India) exam is relaxed to be higher than that of other applicants,Refuted,Supported,Conflicting Evidence/Cherrypicking,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The upper age limit for Muslim candidates for the UPCS (i.e. Union Public Service Commission for recruitment to higher Civil Services of the Government of India) exam is relaxed to be higher than that of other applicants
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The upper age limit is relaxable up to a maximum of five years for candidates belonging to SC/ST categories and up to a maximum of three years for candidates of OBC category among others.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The upper age limit for Muslims and the number of attempts that they can have at the UPSC exams also needs to be relaxed, along the lines where it has already been done for the OBC and SC/ST candidates.
+
+verdict: 'Supported'",Refuting,Supporting,Neutral,Supporting
+373,"the Indian Government set up 5 coaching centres for UPSC exams, 4 of which were in Muslim universities.",Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the government did not set up the coaching centres so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the government has set up 5 centres and 4 of them are in Muslim universities so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the government has not set up any coaching centres in Muslim universities so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+390,"The NFL, NBA and MLB have Tax-Exempt status.",Refuted,Conflicting Evidence/Cherrypicking,Supported,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The NBA does not have tax-exempt status, and Major League Baseball gave it’s up in 2007. The NHL still is tax-exempt.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the NFL, NBA and MLB do have tax exempt status.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The NFL is tax exempt but the NBA and MLB are not. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Neutral,Supporting,Neutral
+394,"Under Trump's watch, auto assembly plants have been added at an unprecedented rate in Michigan, Ohio, North Carolina, South Carolina and possibly other states.",Not Enough Evidence,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that there has been a net loss of three automotive manufacturing plants since the end of 2016, which is not what the claim states.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that there has been an increase in the number of auto assembly plants so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that there has been a net loss of three automotive manufacturing plants since the end of 2016, which is not what Trump said. 
+
+verdict: 'Refuted'",Neutral,Refuting,Supporting,Refuting
+396,Photo of three officers at the Indian Police Service who belong to the same family.,Refuted,Refuted,Not Enough Evidence,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 6th Q&A pair states that the 3 officers are not related, but are from the same batch of the Indian Police Service, which is an all India service.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 3rd Q&A pair states that the 3 officers are brothers and sisters which is not what the claim states, it only says they are related but not what type of relation.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the officers are not related, which is the claim.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+403,53 Johannes Ramokhoase street Pretoria is a human trafficking hotspot.,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, there is no evidence to support the claim. The claim is fake news. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that the location in the claim is a known hotspot for human trafficking, which supports the claim.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: There is no evidence that 53 Johannes Ramokhoase street Pretoria is a human trafficking hotspot.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+407,Donald Trump tweeted “THE NEXT 30 TO 60 DAYS WILL BE THE BIGGEST DRAINING OF THE SWAMP EVER”,Refuted,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the answers and sources. 
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Trump did not mean the next 30 to 60 days so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the answers and sources. Donald Trump did tweet ""THE NEXT 30 TO 60 DAYS WILL BE THE BIGGEST DRAINING OF THE SWAMP EVER"" and he has also been working on draining the swamp in Washington D.C.
+
+verdict: 'Supported'",Refuting,Supporting,Refuting,Supporting
+410,"Maharashtra Navnirman Sena (MNS) chief Raj Thackeray has come forward in support of Bollywood actress Kangana Ranaut and would welcome her back to Mumbai, India.",Refuted,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The MNS chief Raj Thackeray has not supported the claim. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Raj Thackeray has not supported Kangana Ranaut so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Raj Thackeray is not supporting Kangana Ranaut so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Supporting,Refuting
+422,Viral message claims that all Haldiram’s food products were banned in USA,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that not all of the products were banned so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the company has had problems with pesticides in their food products and they have been banned in the USA so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted by the QA pairs. According to the QA pairs, the FDA did not ban all of Haldiram's products. The FDA banned the sale and import of Haldiram’s snacks that have been made in India. The FDA also found pesticides in Haldiram's products and their website states that products made in India have been found to have pesticides and bacteria in high levels. However, the FDA did not ban all of Haldiram's products. Therefore, the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+424,Voters in North Carolina can send their Mail-in vote and then go to the polling place to vote again to check that their mail-in vote has been counted.,Refuted,Supported,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that a voter can request a mail in ballot and then vote in person so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that a voter can not vote in person if they have already sent in a mail in vote so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that a voter can not send in a mail in vote and then go to the polling place to check that it has been counted so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Supporting,Refuting,Refuting
+427,U.S. citizens should show up at polling places on Election Day and cast an in-person ballot if poll workers can’t confirm that their mail-in ballot was received.,Conflicting Evidence/Cherrypicking,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the voter can vote by provisional ballot if the mail in ballot has not been received.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there are ways to confirm that a mail in ballot has been received and that there are ways to cast a ballot if there is a problem with the mail in ballot.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the ballot can be cast in person if there are issues with the mail in ballot so the claim is supported.
+
+verdict: 'Supported'",Neutral,Supporting,Refuting,Supporting
+428,More cops have died from COVID this year than have been killed on patrol.,Not Enough Evidence,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The number of officers who have died from covid is not clear, but it is less than 100. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The number of officers who have died from covid is not enough to surpass the number of officers who have died on patrol. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The number of officers who have died from covid is higher than the number of officers who have died on patrol.
+
+verdict: 'Supported'",Neutral,Refuting,Refuting,Supporting
+430,"US President Trump opened a complaint platform to report censorship on Facebook, Twitter and YouTube.",Supported,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Trump did not open a complaint platform so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the platform was created to report censorship so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Trump did open a platform to report censorship on Facebook, Twitter and YouTube.
+
+verdict: 'Supported'",Supporting,Refuting,Supporting,Supporting
+433,US President Trump canceled Bill Gates’ project known as ID2020,Refuted,Refuted,Not Enough Evidence,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the project is still active and not cancelled so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that Trump did cancel the ID2020 project as claimed, however the 1st Q&A pair states that the ID2020 project is not a Bill Gates project as claimed so more evidence is needed to confirm if Trump cancelled the correct project.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the project is still active and not cancelled so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+435,Igbo people In Nigeria (Igbo people are found in southeastern Nigeria) are the richest people per capita in Africa.,Not Enough Evidence,Refuted,Conflicting Evidence/Cherrypicking,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Igbo people are not the richest people in Africa, but are the most entrepreneurial, and that the GDP per capita is lower than other parts of Africa.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Igbo people are the richest people per capita in Africa, but the last Q&A pair states that 78% of the Igbo people are rich, which is not the richest people per capita in Africa.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Igbo people are the richest people per capita in Africa, but also that the average annual income per person is $8,000 which is not the highest in Africa. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Neutral,Refuting,Neutral,Neutral
+436,The US military will check purity and distribute COVID-19 vaccines in US.,Refuted,Conflicting Evidence/Cherrypicking,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the military will be involved in the distribution of the vaccine but not in checking the purity of the vaccine.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the military will be involved in the distribution of the vaccine but not in checking the purity of the vaccine.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the military will be involved in the distribution of the vaccine but not in checking the purity of the vaccine.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Neutral,Refuting,Neutral
+437,"A 21 year old can have sex with an 11-year-old, and not be listed on the sex registry as a sex offender",Refuted,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the person would be a sex offender so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the person would be a sex offender so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the age of consent varies from state to state and in some states a 21 year old could have sex with an 11 year old so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Refuting,Supporting
+438,"In Massachusetts, ""anybody can go vote for anybody so long as they have their information. … They're not even checking IDs at the polling stations.""",Refuted,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that in Massachusetts you do not need to show an ID to vote, which is what the claim says.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that you do not need to show an ID to vote in Massachusetts so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that in Massachusetts you do not need to show an ID to vote, which is what the claim says.
+
+verdict: 'Supported'",Refuting,Supporting,Refuting,Supporting
+440,"In Belfast, the digital sector employs 26 per cent of the workforce.",Refuted,Not Enough Evidence,Refuted,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show conflicting evidence with some saying 10% and some saying 26% so more evidence is needed to support the claim.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the percentage is not 26% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 10th Q&A pair states that 1 in 5 workers in Belfast are employed in the digital sector which is 20% not 26% as claimed so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Neutral,Refuting,Refuting
+449,Some US mayors are fining people for going to church during the COVID-19 pandemic.,Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that some mayors are fining people for going to church so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that some mayors have fined people for going to church and some haven't so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that some mayors are fining people for going to church so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+452,"Republican Maine Sen. Susan Collins said of President Donald Trump, “Yes, I said that I wouldn’t endorse him but that doesn’t mean I don’t fully support him.”",Refuted,Refuted,Conflicting Evidence/Cherrypicking,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Susan Collins did not endorse Donald Trump and so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that Susan Collins did not endorse Donald Trump but supported him in some ways.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs show that Susan Collins did not endorse Donald Trump and did not support him fully.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+460,"Since 2002, South Africa’s police force has grown by 50%.",Refuted,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the police force has not grown by 50% so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 50% increase in the number of police officers in South Africa between 2002 and 2020 is confirmed in the Q&A pairs.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the police force has grown by 50% so the claim is supported.
+
+verdict: 'Supported'",Refuting,Refuting,Supporting,Supporting
+465,Jacob Blake raped a 14 year old teenage girl.,Refuted,Refuted,Not Enough Evidence,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: There is no evidence that Jacob Blake raped a 14-year-old girl. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As do not provide enough evidence to support or refute the claim.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Jacob Blake was not accused of raping a 14 year old girl so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Neutral,Refuting
+467,"Suresh Raina, the Chennai Super Kings (CSK) cricketer, has withdrawn from the upcoming 2020 edition of the IPL after testing positive for COVID-19.",Refuted,Supported,Conflicting Evidence/Cherrypicking,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Suresh Raina has withdrawn from the 2020 edition of the IPL after testing positive for COVID-19.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Suresh Raina pulled out of the IPL due to personal reasons but then it was found that a player in his team had tested positive for covid so he pulled out. 
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Suresh Raina pulled out of the IPL due to personal reasons and not because he had tested positive for Covid-19.
+
+verdict: 'Refuted'",Refuting,Supporting,Neutral,Refuting
+468,"Even with a voter ID card, you won’t be allowed to vote in Ghana on December 7 if your name is not found in the Register. So, people should take advantage of the exhibition exercise to verify their names.",Supported,Refuted,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that you can vote with a voter ID card even if your name is not on the register so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that a voter ID card is not enough to guarantee a person's eligibility to vote in Ghana on December 7, even if their name is not found in the Register. 
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that even with a voter ID card you still need to be on the register to vote so the claim is supported.
+
+verdict: 'Supported'",Supporting,Refuting,Refuting,Supporting
+478,Duterte has signed order to open nuclear power plant.,Refuted,Refuted,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the president has not signed an order to open a nuclear power plant so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the president has signed an order to open a nuclear power plant so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that the president has not signed an order to open a nuclear power plant so the claim is refuted.
+
+verdict: 'Refuted'",Refuting,Refuting,Supporting,Refuting
+479,"Donald Trump said ""When the anarchists started ripping down our statues and monuments, right outside, I signed an order immediately, 10 years in prison.""",Conflicting Evidence/Cherrypicking,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Donald Trump did sign an order that would give a 10 year prison sentence to those who damage monuments so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Trump did sign an order but it was not a new law so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Trump did sign an order and it included a 10 year prison sentence so the claim is supported.
+
+verdict: 'Supported'",Neutral,Supporting,Refuting,Supporting
+480,"Donald Trump said: ""Biden also vowed to oppose school choice and close down charter schools, ripping away the ladder of opportunity for Black and Hispanic children.""",Conflicting Evidence/Cherrypicking,Refuted,Supported,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden is in favour of good charter schools and allowing students to have their pick of public schools, which falls under the umbrella of school choice.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden does not oppose charter schools, although he has advocated against for-profit charter schools and supported different regulations and oversight of the schools.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden has sounded a skeptical note on charter schools throughout the campaign, promising to ban for-profit charter schools, but his education plan does not mention them.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Neutral,Refuting,Supporting,Neutral
+484,The Edo State government of Nigeria receives 600 million naira monthly as a security vote.,Refuted,Supported,Refuted,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the Edo state government does receive 600 million naira monthly as a security vote.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the amount is not fixed at 600 million naira and varies.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the amount is correct but the source of the money is not clear, and that the money is not accounted for.
+
+verdict: 'Not Enough Evidence'",Refuting,Supporting,Refuting,Neutral
+485,"Donald Trump said ""Last month, I took on Big Pharma. You think that is easy? I signed orders that would massively lower the cost of your prescription drugs.""",Supported,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Trump did sign an order to lower the cost of prescription drugs so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that Trump did take on big pharma and signed orders that would lower the cost of prescription drugs.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Trump did not lower the cost of prescription drugs so the claim is refuted.
+
+verdict: 'Refuted'",Supporting,Supporting,Supporting,Refuting
+488,Mobs torched our cities while popular members of Congress promote the same socialism my father fought against in World War II.,Refuted,Refuted,Conflicting Evidence/Cherrypicking,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers show that the socialism that Trump is talking about is not the same as the socialism that his father fought against in World War II.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&A pairs state that the socialist party in the US was very small and not prominent, and that the democratic party in the US is now more socialist, but not to the extent of the original socialist party in the claim.
+
+verdict: 'Conflicting Evidence/Cherrypicking'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is supported by the QA pairs. 
+
+verdict: 'Supported'",Refuting,Refuting,Neutral,Supporting
+489,Kenosha police allowed Kyle Rittenhouse to walk away after he killed two protesters and injured a third with an AR-15-style rifle.,Supported,Supported,Refuted,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the police did not arrest him at the time so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that he was arrested so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that the police did not arrest him at the time of the shooting so the claim is supported.
+
+verdict: 'Supported'",Supporting,Supporting,Refuting,Supporting
+490,EU Trade Commissioner resigned after being accused of violating COVID-19 health rules in Ireland,Supported,Refuted,Supported,Supported,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The commissioner did not resign because of the allegations but because he felt it was a distraction to his work.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Phil Hogan resigned as European Union trade commissioner because of the controversy over alleged breaches of COVID-19 guidelines rules during a recent trip to his home country.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Phil Hogan resigned as European Union trade commissioner because of the controversy over alleged breaches of COVID-19 guidelines rules during a recent trip to his home country.
+
+verdict: 'Supported'",Supporting,Refuting,Supporting,Supporting
+491,Joe Biden wants to end school choice.,Refuted,Refuted,Refuted,Conflicting Evidence/Cherrypicking,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The claim is refuted. According to the QA pairs, Biden supports school choice, but not private school vouchers. Therefore, the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that Biden supports some school choice but not all so the claim is refuted.
+
+verdict: 'Refuted'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: Biden supports some school choice but not private school vouchers.
+
+verdict: 'Conflicting Evidence/Cherrypicking'",Refuting,Refuting,Refuting,Neutral
+496,"Joe Biden is for open borders, sanctuary cities, free lawyers and health care for illegal immigrants.",Conflicting Evidence/Cherrypicking,Supported,Supported,Refuted,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The 8th Q&A pair states that Biden is for open borders, sanctuary cities, free lawyers and health care for illegal immigrants. which is the claim.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Biden is for open borders and sanctuary cities and free lawyers and health care for illegal immigrants so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The answers and sources show that Biden is not for open borders and so the claim is refuted.
+
+verdict: 'Refuted'",Neutral,Supporting,Supporting,Refuting
+498,"As we speak the US are developing a growing number of treatments, including convalescent plasma, that are saving lives all across the country.",Not Enough Evidence,Not Enough Evidence,Supported,Not Enough Evidence,"<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there is not enough evidence to support the claim.
+
+verdict: 'Not Enough Evidence'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: The Q&As show that there are treatments being developed and that they are showing promise in saving lives so the claim is supported.
+
+verdict: 'Supported'","<|start_header_id|>assistant<|end_header_id|>
+
+justification: There is not enough evidence to support the use of convalescent plasma as a treatment for COVID-19 in the US.
+
+verdict: 'Not Enough Evidence'",Neutral,Neutral,Supporting,Neutral
