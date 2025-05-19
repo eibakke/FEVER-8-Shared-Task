@@ -20,39 +20,39 @@ def load_predictions(file_path):
         return json.load(f)
 
 
-def create_dataframe(direct_preds, baseline_preds, gold_data=None):
+def create_dataframe(perspective_preds, baseline_preds, perspective_name, gold_data=None):
     """Create a pandas DataFrame for analysis comparing predictions."""
     # Create mapping from claim_id to predictions
-    direct_dict = {item['claim_id']: item for item in direct_preds}
+    perspective_dict = {item['claim_id']: item for item in perspective_preds}
     baseline_dict = {item['claim_id']: item for item in baseline_preds}
 
     # Get all unique claim IDs
-    all_ids = sorted(list(set(direct_dict.keys()) | set(baseline_dict.keys())))
+    all_ids = sorted(list(set(perspective_dict.keys()) | set(baseline_dict.keys())))
 
     # Create dataframe rows
     rows = []
     for claim_id in all_ids:
-        direct = direct_dict.get(claim_id, {})
+        perspective = perspective_dict.get(claim_id, {})
         baseline = baseline_dict.get(claim_id, {})
 
         # Skip if we don't have both predictions
-        if not direct or not baseline:
+        if not perspective or not baseline:
             continue
 
         row = {
             'claim_id': claim_id,
-            'claim': direct.get('claim', ''),
-            'direct_label': direct.get('pred_label', ''),
+            'claim': perspective.get('claim', ''),
+            f'{perspective_name}_label': perspective.get('pred_label', ''),
             'baseline_label': baseline.get('pred_label', ''),
-            'direct_output': direct.get('llm_output', ''),
+            f'{perspective_name}_output': perspective.get('llm_output', ''),
             'baseline_output': baseline.get('llm_output', ''),
-            'direct_evidence_count': len(direct.get('evidence', [])),
+            f'{perspective_name}_evidence_count': len(perspective.get('evidence', [])),
             'baseline_evidence_count': len(baseline.get('evidence', [])),
         }
 
         # Add ground truth if available
         if gold_data:
-            gold_item = gold_data[claim_id]
+            gold_item = gold_data[claim_id] if claim_id < len(gold_data) else None
             if gold_item:
                 row['gold_label'] = gold_item.get('label', '')
 
@@ -61,34 +61,34 @@ def create_dataframe(direct_preds, baseline_preds, gold_data=None):
     df = pd.DataFrame(rows)
 
     # Add derived columns
-    df['agreement'] = df['direct_label'] == df['baseline_label']
+    df['agreement'] = df[f'{perspective_name}_label'] == df['baseline_label']
 
     if 'gold_label' in df.columns:
-        df['direct_correct'] = df['direct_label'] == df['gold_label']
+        df[f'{perspective_name}_correct'] = df[f'{perspective_name}_label'] == df['gold_label']
         df['baseline_correct'] = df['baseline_label'] == df['gold_label']
-        df['improvement'] = ~df['direct_correct'] & df['baseline_correct']
-        df['degradation'] = df['direct_correct'] & ~df['baseline_correct']
+        df['improvement'] = ~df[f'{perspective_name}_correct'] & df['baseline_correct']
+        df['degradation'] = df[f'{perspective_name}_correct'] & ~df['baseline_correct']
 
     return df
 
 
-def calculate_agreement_metrics(df):
-    """Calculate agreement metrics between direct and baseline predictions."""
+def calculate_agreement_metrics(df, perspective_name):
+    """Calculate agreement metrics between perspective and baseline predictions."""
     results = {}
 
     # Overall agreement
     results['overall_agreement'] = df['agreement'].mean()
 
-    # Agreement by direct label
-    agreement_by_direct = df.groupby('direct_label')['agreement'].agg(['count', 'mean'])
+    # Agreement by perspective label
+    agreement_by_perspective = df.groupby(f'{perspective_name}_label')['agreement'].agg(['count', 'mean'])
     # Convert to a properly structured dictionary
-    agreement_by_direct_dict = {}
-    for label in agreement_by_direct.index:
-        agreement_by_direct_dict[label] = {
-            'count': int(agreement_by_direct.loc[label, 'count']),
-            'mean': float(agreement_by_direct.loc[label, 'mean'])
+    agreement_by_perspective_dict = {}
+    for label in agreement_by_perspective.index:
+        agreement_by_perspective_dict[label] = {
+            'count': int(agreement_by_perspective.loc[label, 'count']),
+            'mean': float(agreement_by_perspective.loc[label, 'mean'])
         }
-    results['agreement_by_direct_label'] = agreement_by_direct_dict
+    results[f'agreement_by_{perspective_name}_label'] = agreement_by_perspective_dict
 
     # Agreement by baseline label
     agreement_by_baseline = df.groupby('baseline_label')['agreement'].agg(['count', 'mean'])
@@ -101,10 +101,10 @@ def calculate_agreement_metrics(df):
         }
     results['agreement_by_baseline_label'] = agreement_by_baseline_dict
 
-    # Transition matrix (from direct to baseline)
-    labels = sorted(list(set(df['direct_label'].unique()) | set(df['baseline_label'].unique())))
+    # Transition matrix (from perspective to baseline)
+    labels = sorted(list(set(df[f'{perspective_name}_label'].unique()) | set(df['baseline_label'].unique())))
     transition_matrix = pd.crosstab(
-        df['direct_label'],
+        df[f'{perspective_name}_label'],
         df['baseline_label'],
         normalize='index'
     ).round(3)
@@ -120,14 +120,14 @@ def calculate_agreement_metrics(df):
     results['transition_matrix'] = transition_dict
 
     # Count specific transitions (for major label changes)
-    transitions = df.groupby(['direct_label', 'baseline_label']).size().reset_index(name='count')
+    transitions = df.groupby([f'{perspective_name}_label', 'baseline_label']).size().reset_index(name='count')
     total_changes = len(df[~df['agreement']])
 
     if total_changes > 0:
         # Calculate percentages of label flips
         for _, row in transitions.iterrows():
-            if row['direct_label'] != row['baseline_label']:
-                flip_key = f"flip_{row['direct_label']}_to_{row['baseline_label']}"
+            if row[f'{perspective_name}_label'] != row['baseline_label']:
+                flip_key = f"flip_{row[f'{perspective_name}_label']}_to_{row['baseline_label']}"
                 results[flip_key] = {
                     'count': int(row['count']),
                     'percentage_of_changes': round(row['count'] / total_changes * 100, 2)
@@ -139,7 +139,7 @@ def calculate_agreement_metrics(df):
     return results
 
 
-def calculate_correctness_metrics(df):
+def calculate_correctness_metrics(df, perspective_name):
     """Calculate metrics related to correctness and knowledge impact."""
     if 'gold_label' not in df.columns:
         return {"error": "Gold data not available for correctness metrics"}
@@ -147,13 +147,13 @@ def calculate_correctness_metrics(df):
     results = {}
 
     # Overall accuracy
-    results['direct_accuracy'] = df['direct_correct'].mean()
+    results[f'{perspective_name}_accuracy'] = df[f'{perspective_name}_correct'].mean()
     results['baseline_accuracy'] = df['baseline_correct'].mean()
-    results['accuracy_delta'] = results['baseline_accuracy'] - results['direct_accuracy']
+    results['accuracy_delta'] = results['baseline_accuracy'] - results[f'{perspective_name}_accuracy']
 
     # Correction analysis
-    correction_opportunities = len(df[~df['direct_correct']])
-    corrections_made = len(df[~df['direct_correct'] & df['baseline_correct']])
+    correction_opportunities = len(df[~df[f'{perspective_name}_correct']])
+    corrections_made = len(df[~df[f'{perspective_name}_correct'] & df['baseline_correct']])
 
     results['correction_opportunities'] = correction_opportunities
     results['corrections_made'] = corrections_made
@@ -164,8 +164,8 @@ def calculate_correctness_metrics(df):
         results['correction_rate'] = 0
 
     # Error introduction analysis
-    error_opportunities = len(df[df['direct_correct']])
-    errors_introduced = len(df[df['direct_correct'] & ~df['baseline_correct']])
+    error_opportunities = len(df[df[f'{perspective_name}_correct']])
+    errors_introduced = len(df[df[f'{perspective_name}_correct'] & ~df['baseline_correct']])
 
     results['error_opportunities'] = error_opportunities
     results['errors_introduced'] = errors_introduced
@@ -180,39 +180,39 @@ def calculate_correctness_metrics(df):
 
     # Label-specific correctness
     correctness_by_label = df.groupby('gold_label').agg({
-        'direct_correct': 'mean',
+        f'{perspective_name}_correct': 'mean',
         'baseline_correct': 'mean'
     }).reset_index()
 
     results['correctness_by_label'] = correctness_by_label.to_dict()
 
-    # Accuracy for cases where direct and baseline agree vs. disagree
+    # Accuracy for cases where perspective and baseline agree vs. disagree
     agree_cases = df[df['agreement']]
     disagree_cases = df[~df['agreement']]
 
     if len(agree_cases) > 0:
         results['accuracy_when_agree'] = {
             'count': len(agree_cases),
-            'direct_accuracy': agree_cases['direct_correct'].mean(),
+            f'{perspective_name}_accuracy': agree_cases[f'{perspective_name}_correct'].mean(),
             'baseline_accuracy': agree_cases['baseline_correct'].mean()
         }
 
     if len(disagree_cases) > 0:
         results['accuracy_when_disagree'] = {
             'count': len(disagree_cases),
-            'direct_accuracy': disagree_cases['direct_correct'].mean(),
+            f'{perspective_name}_accuracy': disagree_cases[f'{perspective_name}_correct'].mean(),
             'baseline_accuracy': disagree_cases['baseline_correct'].mean()
         }
 
     return results
 
 
-def analyze_evidence_impact(df):
+def analyze_evidence_impact(df, perspective_name):
     """Analyze how evidence quantity impacts prediction changes."""
     results = {}
 
     # Average evidence counts
-    results['avg_direct_evidence'] = df['direct_evidence_count'].mean()
+    results[f'avg_{perspective_name}_evidence'] = df[f'{perspective_name}_evidence_count'].mean()
     results['avg_baseline_evidence'] = df['baseline_evidence_count'].mean()
 
     # Evidence count for agreement vs disagreement cases
@@ -238,7 +238,7 @@ def analyze_evidence_impact(df):
     )[0, 1]
 
     # Evidence analysis by label transition
-    evidence_by_transition = df.groupby(['direct_label', 'baseline_label']).agg({
+    evidence_by_transition = df.groupby([f'{perspective_name}_label', 'baseline_label']).agg({
         'baseline_evidence_count': 'mean',
         'claim_id': 'count'
     }).reset_index()
@@ -248,8 +248,8 @@ def analyze_evidence_impact(df):
     return results
 
 
-def analyze_justification_similarity(df, embedder, batch_size=32, use_gpu=True):
-    """Analyze similarity between direct and baseline justifications."""
+def analyze_justification_similarity(df, perspective_name, embedder, batch_size=32, use_gpu=True):
+    """Analyze similarity between perspective and baseline justifications."""
     # Check for GPU availability
     if use_gpu and torch.cuda.is_available():
         device = torch.device("cuda")
@@ -281,8 +281,9 @@ def analyze_justification_similarity(df, embedder, batch_size=32, use_gpu=True):
         sample_df = df
 
     # Extract justifications
-    print("Extracting justifications...")
-    sample_df['direct_justification'] = sample_df['direct_output'].apply(extract_justification)
+    print(f"Extracting justifications for {perspective_name}...")
+    sample_df[f'{perspective_name}_justification'] = sample_df[f'{perspective_name}_output'].apply(
+        extract_justification)
     sample_df['baseline_justification'] = sample_df['baseline_output'].apply(extract_justification)
 
     # Move model to GPU if available
@@ -290,7 +291,7 @@ def analyze_justification_similarity(df, embedder, batch_size=32, use_gpu=True):
 
     # Compute embeddings in batches
     print("Computing embeddings in batches...")
-    direct_texts = sample_df['direct_justification'].tolist()
+    perspective_texts = sample_df[f'{perspective_name}_justification'].tolist()
     baseline_texts = sample_df['baseline_justification'].tolist()
 
     # Function to compute embeddings in batches
@@ -303,14 +304,14 @@ def analyze_justification_similarity(df, embedder, batch_size=32, use_gpu=True):
         return np.vstack(embeddings)
 
     # Compute embeddings for both sets of texts
-    direct_embeddings = compute_embeddings_batched(direct_texts)
+    perspective_embeddings = compute_embeddings_batched(perspective_texts)
     baseline_embeddings = compute_embeddings_batched(baseline_texts)
 
     # Compute similarities
     print("Computing similarities...")
     similarities = []
-    for i in range(len(direct_embeddings)):
-        similarity = 1 - cosine(direct_embeddings[i], baseline_embeddings[i])
+    for i in range(len(perspective_embeddings)):
+        similarity = 1 - cosine(perspective_embeddings[i], baseline_embeddings[i])
         similarities.append(similarity)
 
     sample_df['justification_similarity'] = similarities
@@ -335,35 +336,35 @@ def analyze_justification_similarity(df, embedder, batch_size=32, use_gpu=True):
     return results
 
 
-def analyze_label_distribution(df):
-    """Analyze how label distribution shifts between direct and baseline predictions."""
+def analyze_label_distribution(df, perspective_name):
+    """Analyze how label distribution shifts between perspective and baseline predictions."""
     results = {}
 
     # Count labels
-    direct_counts = df['direct_label'].value_counts().to_dict()
+    perspective_counts = df[f'{perspective_name}_label'].value_counts().to_dict()
     baseline_counts = df['baseline_label'].value_counts().to_dict()
 
-    results['direct_label_counts'] = direct_counts
+    results[f'{perspective_name}_label_counts'] = perspective_counts
     results['baseline_label_counts'] = baseline_counts
 
     # Calculate percentages
     total = len(df)
-    direct_percentages = {k: v / total for k, v in direct_counts.items()}
+    perspective_percentages = {k: v / total for k, v in perspective_counts.items()}
     baseline_percentages = {k: v / total for k, v in baseline_counts.items()}
 
-    results['direct_label_percentages'] = direct_percentages
+    results[f'{perspective_name}_label_percentages'] = perspective_percentages
     results['baseline_label_percentages'] = baseline_percentages
 
     # Calculate shifts
-    labels = sorted(list(set(direct_counts.keys()) | set(baseline_counts.keys())))
+    labels = sorted(list(set(perspective_counts.keys()) | set(baseline_counts.keys())))
     shifts = {}
 
     for label in labels:
-        direct_pct = direct_percentages.get(label, 0)
+        perspective_pct = perspective_percentages.get(label, 0)
         baseline_pct = baseline_percentages.get(label, 0)
         shifts[label] = {
-            'absolute_shift': baseline_pct - direct_pct,
-            'relative_shift': (baseline_pct / direct_pct - 1) if direct_pct > 0 else float('inf')
+            'absolute_shift': baseline_pct - perspective_pct,
+            'relative_shift': (baseline_pct / perspective_pct - 1) if perspective_pct > 0 else float('inf')
         }
 
     results['label_shifts'] = shifts
@@ -371,18 +372,18 @@ def analyze_label_distribution(df):
     return results
 
 
-def generate_visualizations(df, results, output_dir):
+def generate_visualizations(df, perspective_name, results, output_dir):
     """Generate visualizations from the analysis."""
     os.makedirs(output_dir, exist_ok=True)
 
     # Set up the style
     plt.style.use('seaborn-v0_8-whitegrid')
 
-    # 1. Confusion matrix between direct and baseline predictions
+    # 1. Confusion matrix between perspective and baseline predictions
     plt.figure(figsize=(10, 8))
-    labels = sorted(list(set(df['direct_label'].unique()) | set(df['baseline_label'].unique())))
+    labels = sorted(list(set(df[f'{perspective_name}_label'].unique()) | set(df['baseline_label'].unique())))
     cm = confusion_matrix(
-        df['direct_label'],
+        df[f'{perspective_name}_label'],
         df['baseline_label'],
         labels=labels
     )
@@ -390,32 +391,32 @@ def generate_visualizations(df, results, output_dir):
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                 xticklabels=labels, yticklabels=labels)
     plt.xlabel('Baseline Predictions')
-    plt.ylabel('Direct Predictions')
-    plt.title('Prediction Changes: Direct vs. Knowledge-Based')
+    plt.ylabel(f'{perspective_name.capitalize()} Predictions')
+    plt.title(f'Prediction Changes: {perspective_name.capitalize()} vs. Baseline')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'confusion_matrix.png'), dpi=300)
+    plt.savefig(os.path.join(output_dir, f'{perspective_name}_confusion_matrix.png'), dpi=300)
     plt.close()
 
     # 2. Label distribution comparison
     plt.figure(figsize=(12, 6))
-    labels = sorted(list(set(df['direct_label'].unique()) | set(df['baseline_label'].unique())))
+    labels = sorted(list(set(df[f'{perspective_name}_label'].unique()) | set(df['baseline_label'].unique())))
 
-    direct_counts = [df[df['direct_label'] == label].shape[0] for label in labels]
+    perspective_counts = [df[df[f'{perspective_name}_label'] == label].shape[0] for label in labels]
     baseline_counts = [df[df['baseline_label'] == label].shape[0] for label in labels]
 
     x = np.arange(len(labels))
     width = 0.35
 
-    plt.bar(x - width / 2, direct_counts, width, label='Direct')
-    plt.bar(x + width / 2, baseline_counts, width, label='Knowledge-Based')
+    plt.bar(x - width / 2, perspective_counts, width, label=perspective_name.capitalize())
+    plt.bar(x + width / 2, baseline_counts, width, label='Baseline')
 
     plt.xlabel('Label')
     plt.ylabel('Count')
-    plt.title('Label Distribution Comparison')
+    plt.title(f'Label Distribution Comparison: {perspective_name.capitalize()} vs. Baseline')
     plt.xticks(x, labels, rotation=45, ha='right')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'label_distribution.png'), dpi=300)
+    plt.savefig(os.path.join(output_dir, f'{perspective_name}_label_distribution.png'), dpi=300)
     plt.close()
 
     # 3. Evidence count vs agreement
@@ -433,10 +434,10 @@ def generate_visualizations(df, results, output_dir):
 
     plt.xlabel('Evidence Count')
     plt.ylabel('Agreement Rate')
-    plt.title('Agreement Rate by Evidence Count')
+    plt.title(f'Agreement Rate by Evidence Count: {perspective_name.capitalize()} vs. Baseline')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'evidence_vs_agreement.png'), dpi=300)
+    plt.savefig(os.path.join(output_dir, f'{perspective_name}_evidence_vs_agreement.png'), dpi=300)
     plt.close()
 
     # 4. If gold data is available, accuracy comparison
@@ -444,22 +445,22 @@ def generate_visualizations(df, results, output_dir):
         plt.figure(figsize=(10, 6))
 
         labels = sorted(df['gold_label'].unique())
-        direct_accs = [df[df['gold_label'] == label]['direct_correct'].mean() for label in labels]
+        perspective_accs = [df[df['gold_label'] == label][f'{perspective_name}_correct'].mean() for label in labels]
         baseline_accs = [df[df['gold_label'] == label]['baseline_correct'].mean() for label in labels]
 
         x = np.arange(len(labels))
         width = 0.35
 
-        plt.bar(x - width / 2, direct_accs, width, label='Direct')
-        plt.bar(x + width / 2, baseline_accs, width, label='Knowledge-Based')
+        plt.bar(x - width / 2, perspective_accs, width, label=perspective_name.capitalize())
+        plt.bar(x + width / 2, baseline_accs, width, label='Baseline')
 
         plt.xlabel('True Label')
         plt.ylabel('Accuracy')
-        plt.title('Accuracy by Label')
+        plt.title(f'Accuracy by Label: {perspective_name.capitalize()} vs. Baseline')
         plt.xticks(x, labels, rotation=45, ha='right')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, 'accuracy_by_label.png'), dpi=300)
+        plt.savefig(os.path.join(output_dir, f'{perspective_name}_accuracy_by_label.png'), dpi=300)
         plt.close()
 
         # 5. Improvements vs Degradations
@@ -489,36 +490,36 @@ def generate_visualizations(df, results, output_dir):
 
             plt.xlabel('True Label')
             plt.ylabel('Count')
-            plt.title('Knowledge Store Impact by Label')
+            plt.title(f'Baseline Impact by Label: {perspective_name.capitalize()} vs. Baseline')
             plt.xticks(x, labels, rotation=45, ha='right')
             plt.legend()
             plt.tight_layout()
-            plt.savefig(os.path.join(output_dir, 'knowledge_impact_by_label.png'), dpi=300)
+            plt.savefig(os.path.join(output_dir, f'{perspective_name}_impact_by_label.png'), dpi=300)
             plt.close()
 
     return
 
 
-def write_metrics_to_file(results, output_path):
+def write_metrics_to_file(results, perspective_name, output_path):
     """Write metrics to a formatted text file."""
     with open(output_path, 'w', encoding='utf-8') as f:
-        f.write("# Comparison Analysis: Direct vs. Knowledge-Based Prediction\n\n")
+        f.write(f"# Comparison Analysis: {perspective_name.capitalize()} vs. Baseline Prediction\n\n")
 
         # Write agreement metrics
         f.write("## 1. Agreement Metrics\n\n")
         f.write(f"Overall agreement rate: {results['agreement']['overall_agreement']:.2%}\n")
         f.write(f"Overall flip rate: {results['agreement']['overall_flip_rate']:.2%}\n\n")
 
-        f.write("### Agreement by direct prediction label:\n")
-        for label, stats in results['agreement']['agreement_by_direct_label'].items():
+        f.write(f"### Agreement by {perspective_name} prediction label:\n")
+        for label, stats in results['agreement'][f'agreement_by_{perspective_name}_label'].items():
             f.write(f"- {label}: {stats['mean']:.2%} (n={stats['count']})\n")
         f.write("\n")
 
         # Write transition matrix info
-        f.write("### Transition Matrix (rows=direct, columns=knowledge-based):\n")
-        for direct_label in results['agreement']['transition_matrix']:
-            f.write(f"- From {direct_label}:\n")
-            for baseline_label, value in results['agreement']['transition_matrix'][direct_label].items():
+        f.write(f"### Transition Matrix (rows={perspective_name}, columns=baseline):\n")
+        for perspective_label in results['agreement']['transition_matrix']:
+            f.write(f"- From {perspective_label}:\n")
+            for baseline_label, value in results['agreement']['transition_matrix'][perspective_label].items():
                 f.write(f"  - To {baseline_label}: {value:.2%}\n")
         f.write("\n")
 
@@ -534,8 +535,9 @@ def write_metrics_to_file(results, output_path):
         # If correctness metrics are available
         if 'correctness' in results and 'error' not in results['correctness']:
             f.write("## 2. Correctness Impact\n\n")
-            f.write(f"Direct prediction accuracy: {results['correctness']['direct_accuracy']:.2%}\n")
-            f.write(f"Knowledge-based accuracy: {results['correctness']['baseline_accuracy']:.2%}\n")
+            f.write(
+                f"{perspective_name.capitalize()} prediction accuracy: {results['correctness'][f'{perspective_name}_accuracy']:.2%}\n")
+            f.write(f"Baseline accuracy: {results['correctness']['baseline_accuracy']:.2%}\n")
             f.write(f"Accuracy delta: {results['correctness']['accuracy_delta']:.2%}\n\n")
 
             f.write("### Correction analysis:\n")
@@ -551,15 +553,17 @@ def write_metrics_to_file(results, output_path):
                     f"- When agree (n={results['correctness']['accuracy_when_agree']['count']}): {results['correctness']['accuracy_when_agree']['baseline_accuracy']:.2%}\n")
             if 'accuracy_when_disagree' in results['correctness']:
                 f.write(f"- When disagree (n={results['correctness']['accuracy_when_disagree']['count']}):\n")
-                f.write(f"  - Direct: {results['correctness']['accuracy_when_disagree']['direct_accuracy']:.2%}\n")
                 f.write(
-                    f"  - Knowledge-based: {results['correctness']['accuracy_when_disagree']['baseline_accuracy']:.2%}\n\n")
+                    f"  - {perspective_name.capitalize()}: {results['correctness']['accuracy_when_disagree'][f'{perspective_name}_accuracy']:.2%}\n")
+                f.write(
+                    f"  - Baseline: {results['correctness']['accuracy_when_disagree']['baseline_accuracy']:.2%}\n\n")
 
         # Write evidence impact metrics
         f.write("## 3. Evidence Analysis\n\n")
-        f.write(f"Average evidence count in direct predictions: {results['evidence']['avg_direct_evidence']:.2f}\n")
         f.write(
-            f"Average evidence count in knowledge-based predictions: {results['evidence']['avg_baseline_evidence']:.2f}\n\n")
+            f"Average evidence count in {perspective_name} predictions: {results['evidence'][f'avg_{perspective_name}_evidence']:.2f}\n")
+        f.write(
+            f"Average evidence count in baseline predictions: {results['evidence']['avg_baseline_evidence']:.2f}\n\n")
 
         f.write("### Evidence impact on prediction changes:\n")
         if 'evidence_when_agree' in results['evidence']:
@@ -590,14 +594,14 @@ def write_metrics_to_file(results, output_path):
         # Write label distribution metrics
         f.write("## 5. Label Distribution Analysis\n\n")
         f.write("### Label counts:\n")
-        f.write("| Label | Direct | Knowledge-Based | Absolute Shift | Relative Shift |\n")
-        f.write("|-------|--------|----------------|----------------|---------------|\n")
+        f.write(f"| Label | {perspective_name.capitalize()} | Baseline | Absolute Shift | Relative Shift |\n")
+        f.write("|-------|--------|----------|----------------|---------------|\n")
 
-        all_labels = sorted(list(set(results['distribution']['direct_label_counts'].keys()) |
+        all_labels = sorted(list(set(results['distribution'][f'{perspective_name}_label_counts'].keys()) |
                                  set(results['distribution']['baseline_label_counts'].keys())))
 
         for label in all_labels:
-            direct_count = results['distribution']['direct_label_counts'].get(label, 0)
+            perspective_count = results['distribution'][f'{perspective_name}_label_counts'].get(label, 0)
             baseline_count = results['distribution']['baseline_label_counts'].get(label, 0)
             abs_shift = results['distribution']['label_shifts'][label]['absolute_shift']
             rel_shift = results['distribution']['label_shifts'][label]['relative_shift']
@@ -607,7 +611,7 @@ def write_metrics_to_file(results, output_path):
             else:
                 rel_shift_str = f"{rel_shift:.2%}"
 
-            f.write(f"| {label} | {direct_count} | {baseline_count} | {abs_shift:.2%} | {rel_shift_str} |\n")
+            f.write(f"| {label} | {perspective_count} | {baseline_count} | {abs_shift:.2%} | {rel_shift_str} |\n")
 
 
 def make_json_serializable(obj):
@@ -630,16 +634,140 @@ def make_json_serializable(obj):
         return obj
 
 
+def analyze_perspective(perspective_file, baseline_file, perspective_name, output_dir, gold_data=None, embedder=None,
+                        args=None):
+    """Analyze a single perspective against baseline."""
+    print(f"\n=== Analyzing {perspective_name.capitalize()} vs. Baseline ===")
+
+    # Load data
+    perspective_preds = load_predictions(perspective_file)
+    baseline_preds = load_predictions(baseline_file)
+
+    # Create dataframe
+    df = create_dataframe(perspective_preds, baseline_preds, perspective_name, gold_data)
+
+    # Calculate metrics
+    results = {}
+
+    print("Calculating agreement metrics...")
+    results['agreement'] = calculate_agreement_metrics(df, perspective_name)
+
+    if gold_data:
+        print("Calculating correctness metrics...")
+        results['correctness'] = calculate_correctness_metrics(df, perspective_name)
+
+    print("Analyzing evidence impact...")
+    results['evidence'] = analyze_evidence_impact(df, perspective_name)
+
+    print("Analyzing label distribution...")
+    results['distribution'] = analyze_label_distribution(df, perspective_name)
+
+    # Optional justification analysis
+    if embedder:
+        try:
+            print("Analyzing justification similarity...")
+            results['justification'] = analyze_justification_similarity(
+                df, perspective_name, embedder, batch_size=args.batch_size, use_gpu=args.use_gpu
+            )
+        except Exception as e:
+            print(f"Skipping justification analysis due to error: {e}")
+
+    # Create perspective-specific output directory
+    perspective_output_dir = os.path.join(output_dir, perspective_name)
+    os.makedirs(perspective_output_dir, exist_ok=True)
+
+    # Save dataframe
+    df.to_csv(os.path.join(perspective_output_dir, f'{perspective_name}_comparison_data.csv'), index=False)
+
+    # Generate visualizations
+    print("Generating visualizations...")
+    generate_visualizations(df, perspective_name, results, perspective_output_dir)
+
+    # Write metrics
+    print("Writing metrics to file...")
+    write_metrics_to_file(results, perspective_name,
+                          os.path.join(perspective_output_dir, f'{perspective_name}_comparison_metrics.md'))
+
+    # Save raw results
+    with open(os.path.join(perspective_output_dir, f'{perspective_name}_raw_metrics.json'), 'w', encoding='utf-8') as f:
+        serializable_results = make_json_serializable(results)
+        json.dump(serializable_results, f, indent=2)
+
+    return results
+
+
+def create_summary_comparison(positive_results, negative_results, objective_results, output_dir):
+    """Create a summary comparison across all three perspectives."""
+    summary_path = os.path.join(output_dir, 'multi_perspective_summary.md')
+
+    with open(summary_path, 'w', encoding='utf-8') as f:
+        f.write("# Multi-Perspective Analysis Summary\n\n")
+        f.write("## Overall Agreement Rates\n\n")
+        f.write("| Perspective | Agreement Rate | Flip Rate |\n")
+        f.write("|-------------|----------------|----------|\n")
+
+        for name, results in [('Positive', positive_results), ('Negative', negative_results),
+                              ('Objective', objective_results)]:
+            agreement = results['agreement']['overall_agreement']
+            flip_rate = results['agreement']['overall_flip_rate']
+            f.write(f"| {name} | {agreement:.2%} | {flip_rate:.2%} |\n")
+
+        f.write("\n## Accuracy Comparison (if gold data available)\n\n")
+
+        # Check if correctness data is available
+        if 'correctness' in positive_results and 'error' not in positive_results['correctness']:
+            f.write("| Perspective | Perspective Acc. | Baseline Acc. | Accuracy Delta |\n")
+            f.write("|-------------|------------------|---------------|----------------|\n")
+
+            for name, results in [('Positive', positive_results), ('Negative', negative_results),
+                                  ('Objective', objective_results)]:
+                perspective_acc = results['correctness'][f'{name.lower()}_accuracy']
+                baseline_acc = results['correctness']['baseline_accuracy']
+                delta = results['correctness']['accuracy_delta']
+                f.write(f"| {name} | {perspective_acc:.2%} | {baseline_acc:.2%} | {delta:.2%} |\n")
+
+        f.write("\n## Evidence Impact\n\n")
+        f.write("| Perspective | Avg. Evidence Count | Correlation with Disagreement |\n")
+        f.write("|-------------|---------------------|--------------------------------|\n")
+
+        for name, results in [('Positive', positive_results), ('Negative', negative_results),
+                              ('Objective', objective_results)]:
+            avg_evidence = results['evidence'][f'avg_{name.lower()}_evidence']
+            correlation = results['evidence']['correlation_evidence_disagreement']
+            f.write(f"| {name} | {avg_evidence:.2f} | {correlation:.3f} |\n")
+
+        # Justification similarity if available
+        f.write("\n## Justification Similarity (if computed)\n\n")
+        if 'justification' in positive_results:
+            f.write("| Perspective | Mean Similarity | Similarity When Agree | Similarity When Disagree |\n")
+            f.write("|-------------|-----------------|----------------------|-------------------------|\n")
+
+            for name, results in [('Positive', positive_results), ('Negative', negative_results),
+                                  ('Objective', objective_results)]:
+                if 'justification' in results:
+                    mean_sim = results['justification']['mean_justification_similarity']
+                    agree_sim = results['justification'].get('mean_similarity_when_agree', 'N/A')
+                    disagree_sim = results['justification'].get('mean_similarity_when_disagree', 'N/A')
+
+                    agree_str = f"{agree_sim:.3f}" if agree_sim != 'N/A' else 'N/A'
+                    disagree_str = f"{disagree_sim:.3f}" if disagree_sim != 'N/A' else 'N/A'
+
+                    f.write(f"| {name} | {mean_sim:.3f} | {agree_str} | {disagree_str} |\n")
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Compare direct and knowledge-based prediction systems')
-    parser.add_argument('--direct_file', required=True, help='Path to direct prediction results JSON')
-    parser.add_argument('--baseline_file', required=True, help='Path to baseline (knowledge-based) results JSON')
+    parser = argparse.ArgumentParser(description='Compare multi-perspective and baseline prediction systems')
+    parser.add_argument('--positive_file', required=True, help='Path to positive perspective results JSON')
+    parser.add_argument('--negative_file', required=True, help='Path to negative perspective results JSON')
+    parser.add_argument('--objective_file', required=True, help='Path to objective perspective results JSON')
+    parser.add_argument('--baseline_file', required=True, help='Path to baseline results JSON')
     parser.add_argument('--gold_file', help='Path to gold data for correctness evaluation (optional)')
-    parser.add_argument('--output_dir', default='comparison_results', help='Directory for output files')
+    parser.add_argument('--output_dir', default='multi_perspective_results', help='Directory for output files')
     parser.add_argument('--use_gpu', action='store_true', help='Use GPU for computing embeddings')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for computing embeddings')
     parser.add_argument('--embedding_model', default='all-MiniLM-L6-v2',
                         help='Name of the sentence transformer model to use')
+    parser.add_argument('--skip_justification', action='store_true', help='Skip justification similarity analysis')
     args = parser.parse_args()
 
     # Time the execution
@@ -648,67 +776,62 @@ def main():
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
 
-    print("Loading prediction data...")
-    direct_preds = load_predictions(args.direct_file)
-    baseline_preds = load_predictions(args.baseline_file)
-
+    # Load gold data if provided
     gold_data = None
     if args.gold_file:
         print("Loading gold data...")
         gold_data = load_predictions(args.gold_file)
 
-    print("Creating analysis dataframe...")
-    df = create_dataframe(direct_preds, baseline_preds, gold_data)
+    # Initialize embedder if justification analysis is requested
+    embedder = None
+    if not args.skip_justification:
+        try:
+            print(f"Loading sentence transformer model: {args.embedding_model}...")
+            embedder = SentenceTransformer(args.embedding_model)
+        except Exception as e:
+            print(f"Failed to load embedder: {e}. Skipping justification analysis.")
 
-    # Calculate all metrics
-    results = {}
+    # Analyze each perspective
+    perspectives = [
+        (args.positive_file, 'positive'),
+        (args.negative_file, 'negative'),
+        (args.objective_file, 'objective')
+    ]
 
-    print("Calculating agreement metrics...")
-    results['agreement'] = calculate_agreement_metrics(df)
+    all_results = {}
 
-    if gold_data:
-        print("Calculating correctness metrics...")
-        results['correctness'] = calculate_correctness_metrics(df)
-
-    print("Analyzing evidence impact...")
-    results['evidence'] = analyze_evidence_impact(df)
-
-    print("Analyzing label distribution...")
-    results['distribution'] = analyze_label_distribution(df)
-
-    # Optional justification analysis with GPU support
-    try:
-        print(f"Loading sentence transformer model: {args.embedding_model}...")
-        embedder = SentenceTransformer(args.embedding_model)
-
-        print("Analyzing justification similarity...")
-        results['justification'] = analyze_justification_similarity(
-            df, embedder, batch_size=args.batch_size, use_gpu=args.use_gpu
+    for perspective_file, perspective_name in perspectives:
+        results = analyze_perspective(
+            perspective_file, args.baseline_file, perspective_name,
+            args.output_dir, gold_data, embedder, args
         )
-    except Exception as e:
-        print(f"Skipping justification analysis due to error: {e}")
+        all_results[perspective_name] = results
 
-    # Save dataframe for further analysis
-    df.to_csv(os.path.join(args.output_dir, 'comparison_data.csv'), index=False)
+    # Create summary comparison
+    print("\nCreating summary comparison...")
+    create_summary_comparison(
+        all_results['positive'],
+        all_results['negative'],
+        all_results['objective'],
+        args.output_dir
+    )
 
-    # Generate visualizations
-    print("Generating visualizations...")
-    generate_visualizations(df, results, args.output_dir)
-
-    # Write metrics to file
-    print("Writing metrics to file...")
-    write_metrics_to_file(results, os.path.join(args.output_dir, 'comparison_metrics.md'))
-
-    # Save raw results
-    with open(os.path.join(args.output_dir, 'raw_metrics.json'), 'w', encoding='utf-8') as f:
-        serializable_results = make_json_serializable(results)
+    # Save combined results
+    with open(os.path.join(args.output_dir, 'all_perspectives_raw_metrics.json'), 'w', encoding='utf-8') as f:
+        serializable_results = make_json_serializable(all_results)
         json.dump(serializable_results, f, indent=2)
 
     # Print execution time
     end_time = time.time()
     execution_time = end_time - start_time
-    print(f"Analysis complete! Results saved to {args.output_dir}")
+    print(f"\nMulti-perspective analysis complete! Results saved to {args.output_dir}")
     print(f"Total execution time: {execution_time:.2f} seconds")
+
+    # Print summary statistics
+    print("\n=== Summary ===")
+    for perspective_name in ['positive', 'negative', 'objective']:
+        agreement = all_results[perspective_name]['agreement']['overall_agreement']
+        print(f"{perspective_name.capitalize()} agreement with baseline: {agreement:.2%}")
 
 
 if __name__ == "__main__":
