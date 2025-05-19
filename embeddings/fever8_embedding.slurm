@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=FEVER8
 #SBATCH --account=ec403
-#SBATCH --time=08:00:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --partition=accel
@@ -64,6 +64,6 @@ echo "Files in current directory:"
 ls -la
 
 echo "Running the baseline system with arguments: $@"
-bash "${SUBMIT_DIR}/run_system_embeddings.sh" "$@"
+bash "${SUBMIT_DIR}/run_system_embeddings_chroma_questiononly.sh" "$@"
 
 echo "Job completed"
