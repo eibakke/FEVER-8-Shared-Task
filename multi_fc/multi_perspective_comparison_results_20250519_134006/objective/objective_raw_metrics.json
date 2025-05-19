@@ -1,0 +1,281 @@
+{
+  "agreement": {
+    "overall_agreement": 0.846,
+    "agreement_by_objective_label": {
+      "Conflicting Evidence/Cherrypicking": {
+        "count": 9,
+        "mean": 0.3333333333333333
+      },
+      "Not Enough Evidence": {
+        "count": 16,
+        "mean": 0.5625
+      },
+      "Refuted": {
+        "count": 334,
+        "mean": 0.8952095808383234
+      },
+      "Supported": {
+        "count": 141,
+        "mean": 0.7943262411347518
+      }
+    },
+    "agreement_by_baseline_label": {
+      "Conflicting Evidence/Cherrypicking": {
+        "count": 12,
+        "mean": 0.25
+      },
+      "Not Enough Evidence": {
+        "count": 12,
+        "mean": 0.75
+      },
+      "Refuted": {
+        "count": 334,
+        "mean": 0.8952095808383234
+      },
+      "Supported": {
+        "count": 142,
+        "mean": 0.7887323943661971
+      }
+    },
+    "transition_matrix": {
+      "Conflicting Evidence/Cherrypicking": {
+        "Conflicting Evidence/Cherrypicking": 0.333,
+        "Not Enough Evidence": 0.0,
+        "Refuted": 0.444,
+        "Supported": 0.222
+      },
+      "Not Enough Evidence": {
+        "Conflicting Evidence/Cherrypicking": 0.062,
+        "Not Enough Evidence": 0.562,
+        "Refuted": 0.25,
+        "Supported": 0.125
+      },
+      "Refuted": {
+        "Conflicting Evidence/Cherrypicking": 0.018,
+        "Not Enough Evidence": 0.009,
+        "Refuted": 0.895,
+        "Supported": 0.078
+      },
+      "Supported": {
+        "Conflicting Evidence/Cherrypicking": 0.014,
+        "Not Enough Evidence": 0.0,
+        "Refuted": 0.191,
+        "Supported": 0.794
+      }
+    },
+    "flip_Conflicting Evidence/Cherrypicking_to_Refuted": {
+      "count": 4,
+      "percentage_of_changes": 5.19
+    },
+    "flip_Conflicting Evidence/Cherrypicking_to_Supported": {
+      "count": 2,
+      "percentage_of_changes": 2.6
+    },
+    "flip_Not Enough Evidence_to_Conflicting Evidence/Cherrypicking": {
+      "count": 1,
+      "percentage_of_changes": 1.3
+    },
+    "flip_Not Enough Evidence_to_Refuted": {
+      "count": 4,
+      "percentage_of_changes": 5.19
+    },
+    "flip_Not Enough Evidence_to_Supported": {
+      "count": 2,
+      "percentage_of_changes": 2.6
+    },
+    "flip_Refuted_to_Conflicting Evidence/Cherrypicking": {
+      "count": 6,
+      "percentage_of_changes": 7.79
+    },
+    "flip_Refuted_to_Not Enough Evidence": {
+      "count": 3,
+      "percentage_of_changes": 3.9
+    },
+    "flip_Refuted_to_Supported": {
+      "count": 26,
+      "percentage_of_changes": 33.77
+    },
+    "flip_Supported_to_Conflicting Evidence/Cherrypicking": {
+      "count": 2,
+      "percentage_of_changes": 2.6
+    },
+    "flip_Supported_to_Refuted": {
+      "count": 27,
+      "percentage_of_changes": 35.06
+    },
+    "overall_flip_rate": 0.15400000000000003
+  },
+  "correctness": {
+    "objective_accuracy": 0.686,
+    "baseline_accuracy": 0.692,
+    "accuracy_delta": 0.005999999999999894,
+    "correction_opportunities": 157,
+    "corrections_made": 31,
+    "correction_rate": 0.19745222929936307,
+    "error_opportunities": 343,
+    "errors_introduced": 28,
+    "error_introduction_rate": 0.08163265306122448,
+    "net_corrections": 3,
+    "correctness_by_label": {
+      "gold_label": {
+        "0": "Conflicting Evidence/Cherrypicking",
+        "1": "Not Enough Evidence",
+        "2": "Refuted",
+        "3": "Supported"
+      },
+      "objective_correct": {
+        "0": 0.02631578947368421,
+        "1": 0.08571428571428572,
+        "2": 0.8426229508196721,
+        "3": 0.6721311475409836
+      },
+      "baseline_correct": {
+        "0": 0.05263157894736842,
+        "1": 0.05714285714285714,
+        "2": 0.8491803278688524,
+        "3": 0.680327868852459
+      }
+    },
+    "accuracy_when_agree": {
+      "count": 423,
+      "objective_accuracy": 0.7446808510638298,
+      "baseline_accuracy": 0.7446808510638298
+    },
+    "accuracy_when_disagree": {
+      "count": 77,
+      "objective_accuracy": 0.36363636363636365,
+      "baseline_accuracy": 0.4025974025974026
+    }
+  },
+  "evidence": {
+    "avg_objective_evidence": 10.0,
+    "avg_baseline_evidence": 10.0,
+    "evidence_when_agree": {
+      "count": 423,
+      "avg_baseline_evidence": 10.0
+    },
+    "evidence_when_disagree": {
+      "count": 77,
+      "avg_baseline_evidence": 10.0
+    },
+    "correlation_evidence_disagreement": NaN,
+    "evidence_by_transition": {
+      "objective_label": {
+        "0": "Conflicting Evidence/Cherrypicking",
+        "1": "Conflicting Evidence/Cherrypicking",
+        "2": "Conflicting Evidence/Cherrypicking",
+        "3": "Not Enough Evidence",
+        "4": "Not Enough Evidence",
+        "5": "Not Enough Evidence",
+        "6": "Not Enough Evidence",
+        "7": "Refuted",
+        "8": "Refuted",
+        "9": "Refuted",
+        "10": "Refuted",
+        "11": "Supported",
+        "12": "Supported",
+        "13": "Supported"
+      },
+      "baseline_label": {
+        "0": "Conflicting Evidence/Cherrypicking",
+        "1": "Refuted",
+        "2": "Supported",
+        "3": "Conflicting Evidence/Cherrypicking",
+        "4": "Not Enough Evidence",
+        "5": "Refuted",
+        "6": "Supported",
+        "7": "Conflicting Evidence/Cherrypicking",
+        "8": "Not Enough Evidence",
+        "9": "Refuted",
+        "10": "Supported",
+        "11": "Conflicting Evidence/Cherrypicking",
+        "12": "Refuted",
+        "13": "Supported"
+      },
+      "baseline_evidence_count": {
+        "0": 10.0,
+        "1": 10.0,
+        "2": 10.0,
+        "3": 10.0,
+        "4": 10.0,
+        "5": 10.0,
+        "6": 10.0,
+        "7": 10.0,
+        "8": 10.0,
+        "9": 10.0,
+        "10": 10.0,
+        "11": 10.0,
+        "12": 10.0,
+        "13": 10.0
+      },
+      "claim_id": {
+        "0": 3,
+        "1": 4,
+        "2": 2,
+        "3": 1,
+        "4": 9,
+        "5": 4,
+        "6": 2,
+        "7": 6,
+        "8": 3,
+        "9": 299,
+        "10": 26,
+        "11": 2,
+        "12": 27,
+        "13": 112
+      }
+    }
+  },
+  "distribution": {
+    "objective_label_counts": {
+      "Refuted": 334,
+      "Supported": 141,
+      "Not Enough Evidence": 16,
+      "Conflicting Evidence/Cherrypicking": 9
+    },
+    "baseline_label_counts": {
+      "Refuted": 334,
+      "Supported": 142,
+      "Not Enough Evidence": 12,
+      "Conflicting Evidence/Cherrypicking": 12
+    },
+    "objective_label_percentages": {
+      "Refuted": 0.668,
+      "Supported": 0.282,
+      "Not Enough Evidence": 0.032,
+      "Conflicting Evidence/Cherrypicking": 0.018
+    },
+    "baseline_label_percentages": {
+      "Refuted": 0.668,
+      "Supported": 0.284,
+      "Not Enough Evidence": 0.024,
+      "Conflicting Evidence/Cherrypicking": 0.024
+    },
+    "label_shifts": {
+      "Conflicting Evidence/Cherrypicking": {
+        "absolute_shift": 0.006000000000000002,
+        "relative_shift": 0.3333333333333335
+      },
+      "Not Enough Evidence": {
+        "absolute_shift": -0.008,
+        "relative_shift": -0.25
+      },
+      "Refuted": {
+        "absolute_shift": 0.0,
+        "relative_shift": 0.0
+      },
+      "Supported": {
+        "absolute_shift": 0.0020000000000000018,
+        "relative_shift": 0.007092198581560183
+      }
+    }
+  },
+  "justification": {
+    "mean_justification_similarity": 0.8152438402175903,
+    "median_justification_similarity": 0.8422664403915405,
+    "min_justification_similarity": 0.2705625295639038,
+    "max_justification_similarity": 1.0,
+    "mean_similarity_when_agree": 0.8382036196334022,
+    "mean_similarity_when_disagree": 0.6947054117918015
+  }
+}
