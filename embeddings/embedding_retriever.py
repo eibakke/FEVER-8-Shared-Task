@@ -35,9 +35,9 @@ def build_store(path_kb: str):
     indexing.add_component("clean",   DocumentCleaner())
     indexing.add_component("split",   DocumentSplitter(split_by="sentence", split_length=1))
     indexing.add_component("embed",   SentenceTransformersDocumentEmbedder(
-                                         model=MODEL_NAME, meta_fields_to_embed=["url"]))
+                                        model=MODEL_NAME, meta_fields_to_embed=["url"]))
     indexing.add_component("writer",  DocumentWriter(doc_store,
-                                         policy=DuplicatePolicy.OVERWRITE))
+                                        policy=DuplicatePolicy.OVERWRITE))
     indexing.connect("clean",  "split")
     indexing.connect("split",  "embed")
     indexing.connect("embed",  "writer")
@@ -83,7 +83,7 @@ def process_single_example(idx, example, args, result_queue, counter):
     try:
         start_time = time.time()
         
-        query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
+        query = example["claim"] + " " + " ".join(example['questions'])
         
         processing_time = time.time() - start_time
         print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
@@ -96,7 +96,7 @@ def process_single_example(idx, example, args, result_queue, counter):
             "claim_id": idx,
             "claim": example["claim"],
             f"top_{args.top_k}":  [{"sentence": s, "url": u} for s, u in zip(sents, urls)],
-            "hypo_fc_docs": example["hypo_fc_docs"]
+            "questions": example["questions"]
         }
         
         result_queue.put((idx, result))

@@ -23,10 +23,12 @@ from haystack import Document
 
 from haystack_integrations.document_stores.chroma import ChromaDocumentStore
 from haystack_integrations.components.retrievers.chroma import ChromaEmbeddingRetriever
+from haystack.utils import ComponentDevice
 
 #Defining global variables
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+GPU_DEVICE = ComponentDevice.from_str("cuda")
 EMBEDDING_DIM = 384
 
 def _noop_embed(texts):
@@ -54,11 +56,11 @@ def build_store(path_kb, db_dir = "data_store/chroma_db", collection = "miniLM_c
     indexing.add_component("split",  DocumentSplitter(split_by="sentence", split_length=1))
     indexing.add_component("embed",  SentenceTransformersDocumentEmbedder(
                                         model=MODEL_NAME,
-                                        device="cuda",
-                                        batch_size=512,
-                                        precision="float16",
-                                        progress_bar=False,
-                                        meta_fields_to_embed=["url"]))
+                                        device=GPU_DEVICE,
+                                        batch_size=2048,
+                                        #precision="float16",
+                                        model_kwargs={"torch_dtype": torch.float16}
+                                        ))
     indexing.add_component("writer", DocumentWriter(doc_store, policy=DuplicatePolicy.OVERWRITE))
     indexing.connect("clean", "split")
     indexing.connect("split", "embed")
@@ -80,6 +82,7 @@ def build_store(path_kb, db_dir = "data_store/chroma_db", collection = "miniLM_c
                         if len(batch) == BATCH_SIZE:
                             indexing.run({"clean": {"documents": batch}})
                             batch.clear()
+                    
     if batch:
         indexing.run({"clean": {"documents": batch}})
 
@@ -96,8 +99,8 @@ def retrieve_top_k_sentences(query: str, top_k: int):
 def process_single_example(idx, example, args, result_queue, counter):
     try:
         start_time = time.time()
-        
-        query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
+        questions = example.get("questions", [])
+        query = example["claim"] + " " + " ".join(questions)
         
         processing_time = time.time() - start_time
         print(f"Top {args.top_k} retrieved. Time elapsed: {processing_time:.2f}s")
@@ -110,7 +113,7 @@ def process_single_example(idx, example, args, result_queue, counter):
             "claim_id": idx,
             "claim": example["claim"],
             f"top_{args.top_k}":  [{"sentence": s, "url": u} for s, u in zip(sents, urls)],
-            "hypo_fc_docs": example["hypo_fc_docs"]
+            "questions": questions
         }
         
         result_queue.put((idx, result))
@@ -250,12 +253,13 @@ if __name__ == "__main__":
     DOC_STORE = build_store(args.knowledge_store_dir)
     EMBEDDER = SentenceTransformersTextEmbedder(
     model=MODEL_NAME,
-    device="cuda",       
+    device=GPU_DEVICE,     
     batch_size=512,       
-    precision="float16",
+    #precision="float16",
     progress_bar=False
     )
-    EMBEDDER.warm_up()  
+    EMBEDDER.warm_up() 
+    EMBEDDER._backend.model.half() 
     RETRIEVER = ChromaEmbeddingRetriever(
         document_store=DOC_STORE,
         query_embedder=EMBEDDER,

@@ -163,13 +163,14 @@ def main(args):
                 print(f"Processing claim {example['claim_id']}... Progress: {done + 1} / {total}")
                 
                 claim = example['claim']
+                extra_queries = example.get("questions", [])
                 query = [get_detailed_instruct(task, claim)] + [
-                    get_detailed_instruct(task, le) 
-                    for le in example['hypo_fc_docs'] 
-                    if len(le.strip()) > 0
+                    get_detailed_instruct(task, q) for q in extra_queries if q.strip()
                 ]
                 query_length = len(query)
-                sentences = [sent['sentence'] for sent in example[f'top_{5000}']][:args.retrieved_top_k]
+                top_field = f"top_{args.retrieved_top_k}"
+
+                sentences = [s["sentence"] for s in example[top_field]][:args.retrieved_top_k]
                 
                 st = time.time()
                 try:
@@ -196,7 +197,8 @@ def main(args):
                     
                     scores = np.array(all_scores)
                     top_k_idx = np.argsort(scores)[::-1]
-                    results = [example['top_5000'][i] for i in top_k_idx]
+                    
+                    results = [example[top_field][i] for i in top_k_idx]
                     top_k_sentences_urls = select_top_k(claim, results, args.top_k)
                     
                     print(f"Top {args.top_k} retrieved. Time elapsed: {time.time() - st:.2f}s")
