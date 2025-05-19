@@ -102,9 +102,10 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
         
         start_time = time.time()
         
-        #query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
+        query = example["claim"] + " " + " ".join(example['hypo_fc_docs'])
         questions = example.get("questions", [])
-        query = example["claim"] + " " + " ".join(questions)
+        #query = example["claim"] + " " + " ".join(questions)
+        #query = example["claim"] + " " + " ".join(example['questions'])
 
         if args.retrieval_method == "bm25_precomputed":
             precomputed_file = os.path.join(args.precomputed_bm25_dir, f"{idx}.pkl")
@@ -153,6 +154,7 @@ def process_single_example(idx, example, args, result_queue, counter, lock):
 
 def writer_thread(output_file, result_queue, total_examples, stop_event):
     pending_results = []
+    next_index = 0
     
     with open(output_file, "w", encoding="utf-8") as f:
         while not (stop_event.is_set() and result_queue.empty()):

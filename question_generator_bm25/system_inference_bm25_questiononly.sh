@@ -5,7 +5,7 @@ source $(dirname "$0")/../config.sh
 
 # Default settings (can be overridden via command-line arguments)
 SYSTEM_NAME="bm25_questiononly"  # Change this to "HerO", "Baseline", etc.
-SPLIT="train_train"             # Change this to "dev", or "test"
+SPLIT="dev"             # Change this to "dev", or "test"
 BASE_DIR="."            # Current directory
 NUM_EXAMPLES=0        # Default: use full dataset (0 = full dataset)
 RESUME_STEP=1           # Default: start from the beginning
