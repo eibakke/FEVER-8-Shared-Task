@@ -14,7 +14,7 @@ source $(pwd)/../config.sh
 
 # Default settings
 MULTI_SYSTEM="multi_perspective"
-BASELINE_SYSTEM="baseline"
+BASELINE_SYSTEM="baseline_dev"
 SPLIT="dev"
 OUTPUT_DIR="multi_perspective_comparison_results"
 USE_GPU=1
