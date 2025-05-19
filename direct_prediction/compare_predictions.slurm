@@ -14,8 +14,8 @@ source $(pwd)/../config.sh
 
 # Default settings
 DIRECT_SYSTEM="direct_prediction"
-BASELINE_SYSTEM="baseline"
-SPLIT="train_train"
+BASELINE_SYSTEM="baseline_dev"
+SPLIT="dev"
 OUTPUT_DIR="comparison_results"
 USE_GPU=1
 BATCH_SIZE=64
