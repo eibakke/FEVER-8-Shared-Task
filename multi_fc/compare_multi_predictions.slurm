@@ -86,7 +86,7 @@ conda activate hero
 POSITIVE_FILE="${DATA_STORE}/${MULTI_SYSTEM}/${SPLIT}_veracity_prediction_positive.json"
 NEGATIVE_FILE="${DATA_STORE}/${MULTI_SYSTEM}/${SPLIT}_veracity_prediction_negative.json"
 OBJECTIVE_FILE="${DATA_STORE}/${MULTI_SYSTEM}/${SPLIT}_veracity_prediction_objective.json"
-BASELINE_FILE="${DATA_STORE}/${BASELINE_SYSTEM}/${SPLIT}_veracity_prediction.json"
+BASELINE_FILE="${DATA_STORE}/${BASELINE_SYSTEM}/${SPLIT}_veracity_prediction_first.json"
 GOLD_FILE="${DATA_STORE}/averitec/${SPLIT}.json"
 
 # Check if perspective files exist
