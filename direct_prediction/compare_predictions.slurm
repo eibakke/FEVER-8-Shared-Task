@@ -79,8 +79,8 @@ source "${SHARED_PROJECT_PATH}/miniconda3/etc/profile.d/conda.sh"
 conda activate hero
 
 # Setup data paths
-DIRECT_FILE="${DATA_STORE}/${DIRECT_SYSTEM}/${SPLIT}_veracity_prediction.json"
-BASELINE_FILE="${DATA_STORE}/${BASELINE_SYSTEM}/${SPLIT}_veracity_prediction.json"
+DIRECT_FILE="${DATA_STORE}/${DIRECT_SYSTEM}/${SPLIT}_veracity_prediction_first.json"
+BASELINE_FILE="${DATA_STORE}/${BASELINE_SYSTEM}/${SPLIT}_veracity_prediction_first.json"
 GOLD_FILE="${DATA_STORE}/averitec/${SPLIT}.json"
 
 # Check if files exist
