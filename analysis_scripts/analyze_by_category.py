@@ -2,11 +2,8 @@
 import json
 import argparse
 import os
-import numpy as np
-import pandas as pd
 from collections import defaultdict, Counter
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import classification_report
 import warnings
 
 
@@ -195,7 +192,7 @@ def analyze_by_category(baseline_matched, multi_matched, baseline_questions, mul
         # Handle the case where we have limited data
         if len(set(baseline_true)) <= 1 or len(set(baseline_pred)) <= 1:
             f.write(
-                "⚠️ **Warning**: Not enough data for meaningful classification metrics. Need multiple categories in both predictions and ground truth.\n\n")
+                "**Warning**: Not enough data for meaningful classification metrics. Need multiple categories in both predictions and ground truth.\n\n")
         else:
             # Create classification reports with zero_division=0 to avoid warnings
             baseline_report = classification_report(baseline_true, baseline_pred,
@@ -270,7 +267,7 @@ def analyze_by_category(baseline_matched, multi_matched, baseline_questions, mul
 
         # If we couldn't get any question data, note this in the output
         if not multi_questions_by_id:
-            f.write("⚠️ **Warning**: Could not extract question data by claim ID.\n\n")
+            f.write("**Warning**: Could not extract question data by claim ID.\n\n")
 
             # Try to count perspectives from the raw data
             perspective_counts = defaultdict(int)

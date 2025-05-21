@@ -2,7 +2,6 @@
 import json
 import argparse
 import os
-import csv
 import random
 from collections import defaultdict
 
