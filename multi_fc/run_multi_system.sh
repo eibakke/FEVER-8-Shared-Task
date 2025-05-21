@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the configuration file to get shared paths
-source $(dirname "$0")/config.sh
+source $(dirname "$0")/../config.sh
 
 # Get SYSTEM_NAME from multi_system_inference.sh environment
 eval $(grep '^SYSTEM_NAME=' $(dirname "$0")/multi_system_inference.sh)

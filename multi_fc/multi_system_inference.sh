@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the configuration file to get shared paths
-source $(dirname "$0")/config.sh
+source $(dirname "$0")/../config.sh
 
 # Default settings (can be overridden via command-line arguments)
 SYSTEM_NAME="multi_perspective"  # Change this to identify your system
@@ -154,10 +154,10 @@ should_run_step() {
 }
 
 # Load API keys from .env
-if [ -f "${CODE_PATH}/.env" ]; then
-    source "${CODE_PATH}/.env"
+if [ -f "${CODE_PATH}/../.env" ]; then
+    source "${CODE_PATH}/../.env"
 else
-    echo "Warning: .env file not found at ${CODE_PATH}/.env"
+    echo "Warning: .env file not found at ${CODE_PATH}/../.env"
     echo "Please create it with: echo 'export HUGGING_FACE_HUB_TOKEN=your_token' > .env"
 fi
 
@@ -186,7 +186,7 @@ FC_TYPES=("positive" "negative" "objective")
 STEP1_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_multi_hyde_fc.json"
 if should_run_step 1 "$STEP1_OUTPUT"; then
     echo "Step 1: Generating multi-type hypothetical fact-checking documents..."
-    python "${CODE_PATH}/multi_fc/multi_hyde_fc_generation.py" \
+    python "${CODE_PATH}/multi_hyde_fc_generation.py" \
         --target_data "${DATA_STORE}/averitec/${SPLIT}.json" \
         --json_output "$STEP1_OUTPUT" \
         --model "$MODEL_PATH" || exit 1
@@ -197,7 +197,7 @@ STEP2_OUTPUT_PREFIX="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_hyde_fc"
 STEP2_OUTPUT="${STEP2_OUTPUT_PREFIX}_positive.json" # Check just one of the outputs
 if should_run_step 2 "$STEP2_OUTPUT"; then
     echo "Step 2: Extracting different types of fact-checking documents..."
-    python "${CODE_PATH}/multi_fc/extract_fc_types.py" \
+    python "${CODE_PATH}/extract_fc_types.py" \
         --input_file "$STEP1_OUTPUT" \
         --output_prefix "$STEP2_OUTPUT_PREFIX" \
         --types "${FC_TYPES[@]}" || exit 1
@@ -214,7 +214,7 @@ for fc_type in "${FC_TYPES[@]}"; do
     STEP3A_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_retrieval_top_k_${fc_type}.json"
     if should_run_step "3a-${fc_type}" "$STEP3A_OUTPUT"; then
         echo "Step 3a: Running retrieval for ${fc_type} fact-checking..."
-        python "${CODE_PATH}/baseline/retrieval_optimized.py" \
+        python "${CODE_PATH}/../baseline/retrieval_optimized.py" \
             --knowledge_store_dir "${KNOWLEDGE_STORE_PATH}" \
             --retrieval_method "bm25_precomputed" \
             --precomputed_bm25_dir "${KNOWLEDGE_STORE_PATH}/precomputed_bm25" \
@@ -227,7 +227,7 @@ for fc_type in "${FC_TYPES[@]}"; do
     STEP3B_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_reranking_top_k_${fc_type}.json"
     if should_run_step "3b-${fc_type}" "$STEP3B_OUTPUT"; then
         echo "Step 3b: Running reranking for ${fc_type} fact-checking..."
-        python "${CODE_PATH}/baseline/reranking_optimized.py" \
+        python "${CODE_PATH}/../baseline/reranking_optimized.py" \
             --target_data "$STEP3A_OUTPUT" \
             --json_output "$STEP3B_OUTPUT" \
             --retrieved_top_k 500 --batch_size $RERANKING_BATCH_SIZE || exit 1
@@ -237,7 +237,7 @@ for fc_type in "${FC_TYPES[@]}"; do
     STEP3C_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_top_k_qa_${fc_type}.json"
     if should_run_step "3c-${fc_type}" "$STEP3C_OUTPUT"; then
         echo "Step 3c: Generating questions for ${fc_type} fact-checking..."
-        python "${CODE_PATH}/baseline/question_generation_optimized.py" \
+        python "${CODE_PATH}/../baseline/question_generation_optimized.py" \
             --reference_corpus "${DATA_STORE}/averitec/train_reference.json" \
             --top_k_target_knowledge "$STEP3B_OUTPUT" \
             --output_questions "$STEP3C_OUTPUT" \
@@ -253,7 +253,7 @@ done
 STEP4_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_merged_qa.json"
 if should_run_step 4 "$STEP4_OUTPUT"; then
     echo "Step 4: Merging question-answer pairs from all perspectives..."
-    python "${CODE_PATH}/multi_fc/merge_qa.py" \
+    python "${CODE_PATH}/merge_qa.py" \
         --qa_files "${QA_OUTPUTS[@]}" \
         --output_file "$STEP4_OUTPUT" \
         --types "${FC_TYPES[@]}" || exit 1
@@ -263,7 +263,7 @@ fi
 STEP5_OUTPUT="${DATA_STORE}/${SYSTEM_NAME}/${SPLIT}_veracity_prediction.json"
 if should_run_step 5 "$STEP5_OUTPUT"; then
     echo "Step 5: Running veracity prediction with merged question-answer pairs..."
-    python "${CODE_PATH}/multi_fc/multi_veracity_prediction.py" \
+    python "${CODE_PATH}/multi_veracity_prediction.py" \
         --target_data "$STEP4_OUTPUT" \
         --output_file "$STEP5_OUTPUT" \
         --batch_size $VERACITY_BATCH_SIZE \
@@ -275,7 +275,7 @@ STEP6_OUTPUT="${CODE_PATH}/leaderboard_submission/submission.csv"
 mkdir -p "${CODE_PATH}/leaderboard_submission"
 if should_run_step 6 "$STEP6_OUTPUT"; then
     echo "Step 6: Preparing leaderboard submission..."
-    python "${CODE_PATH}/prepare_leaderboard_submission.py" \
+    python "${CODE_PATH}/../prepare_leaderboard_submission.py" \
         --filename "$STEP5_OUTPUT" \
         --output_dir "${CODE_PATH}/leaderboard_submission" || exit 1
 fi
@@ -283,7 +283,7 @@ fi
 # Step 7: Evaluate results
 if should_run_step 7 ""; then  # No specific output file for evaluation
     echo "Step 7: Evaluating results..."
-    python "${CODE_PATH}/averitec_evaluate.py" \
+    python "${CODE_PATH}/../averitec_evaluate.py" \
         --prediction_file "$STEP6_OUTPUT" \
         --label_file "${CODE_PATH}/leaderboard_submission/solution_${SPLIT}.csv" || exit 1
 fi
