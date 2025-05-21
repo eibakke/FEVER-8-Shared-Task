@@ -102,7 +102,6 @@ def calculate_agreement_metrics(df, perspective_name):
     results['agreement_by_baseline_label'] = agreement_by_baseline_dict
 
     # Transition matrix (from perspective to baseline)
-    labels = sorted(list(set(df[f'{perspective_name}_label'].unique()) | set(df['baseline_label'].unique())))
     transition_matrix = pd.crosstab(
         df[f'{perspective_name}_label'],
         df['baseline_label'],

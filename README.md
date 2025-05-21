@@ -1,3 +1,15 @@
+# (Fact) Check Your Bias
+
+This repository contains the code for the paper (Fact) Check Your Bias, submitted to the FEVER 8 workshop and WNNLP 2025.
+
+The code investigates the effects of bias in hypothetical document generation on document retrieval in fact verification systems.
+
+It includes the code for our two experiments (1) Direct Prediction and (2) Multi Perspective, including detailed analysis of final output label distribution and the impact of bias on retrieved document overlap, ranking, and domain distributions across different bias conditions.
+
+This repository in the current form is meant as a reference to accompany the paper, scripts may need to be adjusted to run as intended. In particular the paths are hardcoded to the environments and experimental setup of the authors.
+
+The installation and setup description below from the original shared task description may serve as a good starting point for setting up your environment, but there will need to be more adjustments made to run the code as intended.
+
 # FEVER 8 Shared Task
 
 In this year's workshop, we will introduce a new shared task focused on efficient, reproducible and open-source approaches to automated fact-checking. The motivation was the observation from the [7th FEVER workshop shared task](https://fever.ai/2024/task.html), that most of the 21 participating systems, including some of the best performing ones, relied on large, closed source, proprietary models. We would like to challenge participants this year to improve in these aspects, and we will also include [improved evaluation](https://arxiv.org/abs/2411.05375) and a new more recent test set of real-world claims.

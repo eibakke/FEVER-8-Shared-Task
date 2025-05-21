@@ -1,9 +1,7 @@
-import tqdm
 import argparse
 import torch
 import transformers
 import json
-import os
 from vllm import LLM, SamplingParams
 from datetime import datetime, timedelta
 import time

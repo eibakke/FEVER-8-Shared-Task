@@ -2,7 +2,6 @@ from vllm import LLM, SamplingParams
 import json
 import torch
 import time
-import os
 from datetime import datetime, timedelta
 import argparse
 from tqdm import tqdm

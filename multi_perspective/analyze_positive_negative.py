@@ -8,8 +8,6 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from collections import Counter, defaultdict
 from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix
 import argparse
 from pathlib import Path
@@ -150,7 +148,6 @@ def analyze_bias_patterns(df):
     # Define supporting vs refuting labels
     supporting_labels = {'Supported'}
     refuting_labels = {'Refuted'}
-    neutral_labels = {'Not Enough Evidence', 'Conflicting Evidence/Cherrypicking'}
 
     def categorize_prediction(pred):
         if pred in supporting_labels:
@@ -315,7 +312,7 @@ def create_visualizations(df, results, output_dir):
         cm = confusion_matrix(df['ground_truth'], df[system], labels=labels)
         cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-        im = axes[idx].imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
+        axes[idx].imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
         axes[idx].set_title(f'{name} Confusion Matrix (Normalized)')
 
         # Add text annotations

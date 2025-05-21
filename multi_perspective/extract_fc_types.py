@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import os
 
 
 def extract_fc_type(input_file, output_prefix, fc_type):
